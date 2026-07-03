@@ -1,0 +1,28 @@
+{
+  "station": "Q8 Antwerpen — Schijnpoortweg 18-20, 2060 Antwerpen",
+  "source_url": "https://carbu.com/belgie/index.php/station/q8/antwerpen/2060/1591",
+  "last_update": "2026-07-03T08:27:05",
+  "fuels": {
+    "super95": {
+      "label": "Super 95 (E10)",
+      "unit": "€/L",
+      "price": 1.85,
+      "page_date": "03/07/26",
+      "error": null
+    },
+    "super98": {
+      "label": "Super 98 (E5)",
+      "unit": "€/L",
+      "price": null,
+      "page_date": null,
+      "error": "prijs niet beschikbaar op carbu.com"
+    },
+    "diesel": {
+      "label": "Diesel (B7)",
+      "unit": "€/L",
+      "price": 1.89,
+      "page_date": "03/07/26",
+      "error": null
+    }
+  }
+}
