@@ -110,8 +110,8 @@
   ::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.08); border-radius:8px; }
   ::-webkit-scrollbar-track{ background:transparent; }
 
-  .cal-cell{ min-height:98px; border:1px solid var(--border-glow); border-radius:14px; background:rgba(255,255,255,0.02);
-    padding:7px 8px; display:flex; flex-direction:column; justify-content:space-between; transition:all .18s ease; position:relative; }
+  .cal-cell{ min-height:98px; min-width:0; border:1px solid var(--border-glow); border-radius:14px; background:rgba(255,255,255,0.02);
+    padding:7px 8px; display:flex; flex-direction:column; justify-content:space-between; transition:all .18s ease; position:relative; overflow:hidden; }
   .cal-cell:not(.empty):hover{ transform:scale(1.035); border-color:var(--border-glow-strong); z-index:2; }
   .cal-cell.empty{ border-color:transparent; background:transparent; }
   .cal-cell.today{ border-color:var(--border-glow-strong); box-shadow:0 0 18px rgba(168,85,247,0.32);
@@ -119,11 +119,19 @@
   .cal-cell.holiday{ box-shadow: inset 0 0 0 1.5px rgba(251,191,36,0.55); }
   .holiday-star{ position:absolute; top:6px; right:6px; color:var(--amber); }
   .task-dot{ position:absolute; bottom:7px; left:8px; min-width:7px; height:7px; padding:0 2px; border-radius:100px; background:var(--cyan-soft); box-shadow:0 0 6px var(--cyan-soft); font-size:8px; line-height:7px; text-align:center; color:#04222a; font-family:'JetBrains Mono',monospace; }
-  .shift-pill{ display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:8px; font-size:10px; font-family:'JetBrains Mono',monospace; font-weight:600; width:fit-content; }
+  .shift-pill{ display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:8px; font-size:10px; font-family:'JetBrains Mono',monospace; font-weight:600;
+    max-width:100%; box-sizing:border-box; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .shift-pill.A{ background:rgba(251,191,36,0.18); color:var(--amber-soft); }
   .shift-pill.B{ background:rgba(59,130,246,0.2); color:var(--blue-soft); }
   .shift-pill.C{ background:rgba(168,85,247,0.2); color:var(--purple-soft); }
   .shift-pill.RUST{ background:rgba(34,211,238,0.16); color:var(--cyan-soft); }
+  @media (max-width:640px){
+    #month-grid, #month-weekday-header{ gap:4px; }
+    .cal-cell{ min-height:64px; padding:4px 3px; border-radius:9px; gap:3px; }
+    .shift-pill{ font-size:8px; padding:1px 4px; border-radius:6px; gap:2px; }
+    .task-dot{ font-size:7px; bottom:4px; left:4px; }
+    .holiday-star{ top:3px; right:3px; width:10px; height:10px; }
+  }
 
   .exp-bar{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:4px; }
   .exp-bar-fill{ width:100%; border-radius:6px 6px 2px 2px; background:linear-gradient(180deg, var(--purple), var(--blue)); transition:height .5s cubic-bezier(.34,1.56,.64,1); min-height:3px; }
@@ -306,10 +314,9 @@
         <button class="nav-btn" data-page="financien" title="Financiën"><i data-lucide="wallet" class="w-5 h-5"></i></button>
         <button class="nav-btn" data-page="rooster" title="Rooster"><i data-lucide="calendar-days" class="w-5 h-5"></i></button>
         <button class="nav-btn" data-page="loon" title="Werk"><i data-lucide="briefcase" class="w-5 h-5"></i></button>
-        <button class="nav-btn" data-page="wk" title="WK 2026"><i data-lucide="trophy" class="w-5 h-5"></i></button>
+        <button class="nav-btn" data-page="vintage" title="Vintage Shop"><i data-lucide="store" class="w-5 h-5"></i></button>
         <button class="nav-btn" data-page="taken" title="Taken"><i data-lucide="check-square" class="w-5 h-5"></i></button>
         <button class="nav-btn" data-page="eten" title="Eten"><i data-lucide="chef-hat" class="w-5 h-5"></i></button>
-        <button class="nav-btn" data-page="vintage" title="Vintage Shop"><i data-lucide="store" class="w-5 h-5"></i></button>
       </nav>
     </div>
     <button class="nav-btn" id="settings-btn" title="Instellingen"><i data-lucide="settings" class="w-5 h-5"></i></button>
@@ -320,10 +327,9 @@
     <button class="nav-btn shrink-0" data-page="financien"><i data-lucide="wallet" class="w-5 h-5"></i></button>
     <button class="nav-btn shrink-0" data-page="rooster"><i data-lucide="calendar-days" class="w-5 h-5"></i></button>
     <button class="nav-btn shrink-0" data-page="loon"><i data-lucide="briefcase" class="w-5 h-5"></i></button>
-    <button class="nav-btn shrink-0" data-page="wk"><i data-lucide="trophy" class="w-5 h-5"></i></button>
+    <button class="nav-btn shrink-0" data-page="vintage"><i data-lucide="store" class="w-5 h-5"></i></button>
     <button class="nav-btn shrink-0" data-page="taken"><i data-lucide="check-square" class="w-5 h-5"></i></button>
     <button class="nav-btn shrink-0" data-page="eten"><i data-lucide="chef-hat" class="w-5 h-5"></i></button>
-    <button class="nav-btn shrink-0" data-page="vintage"><i data-lucide="store" class="w-5 h-5"></i></button>
     <button class="nav-btn shrink-0" id="settings-btn-mobile"><i data-lucide="settings" class="w-5 h-5"></i></button>
   </nav>
 
@@ -441,22 +447,6 @@
         </div>
 
         <div class="panel p-6">
-          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <div><p class="text-xs font-mono text-[var(--text-2)] mb-1">VERKOOP & BERICHTEN</p><h3 class="font-display text-lg font-semibold">Vintage shop log</h3></div>
-            <button id="sale-add-btn-open" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Log</button>
-          </div>
-          <div class="flex flex-wrap gap-1 mb-3" id="sales-filter-tabs">
-            <button data-filter="alles" class="period-tab active" style="padding:2px 9px">Alles</button>
-            <button data-filter="te_verzenden" class="period-tab" style="padding:2px 9px">Te verzenden</button>
-            <button data-filter="verzonden" class="period-tab" style="padding:2px 9px">Verzonden</button>
-            <button data-filter="op_te_halen" class="period-tab" style="padding:2px 9px">Op te halen</button>
-            <button data-filter="opgehaald" class="period-tab" style="padding:2px 9px">Opgehaald</button>
-          </div>
-          <div id="sales-log" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
-          <p class="text-[11px] text-[var(--text-3)] mt-3 leading-relaxed">Automatische meldingen van Vinted, 2dehands, Etsy of Marktplaats kan dit lokale bestand niet ontvangen — log ze hier zelf voor een overzicht op één plek.</p>
-        </div>
-
-        <div class="panel p-6">
           <p class="text-[var(--text-2)] text-xs font-mono mb-1">QUICK ACTIONS</p>
           <h3 class="font-display text-lg font-semibold mb-4">Snelle acties &amp; taken</h3>
           <div class="flex flex-wrap gap-2 mb-5">
@@ -517,22 +507,6 @@
           </div>
         </div>
 
-        <div class="panel p-6 lg:col-span-2" id="wk-card">
-          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div class="flex items-center gap-2">
-              <i data-lucide="trophy" class="w-4 h-4 text-[var(--amber-soft)]"></i>
-              <div><p class="text-xs font-mono text-[var(--text-2)] mb-0.5">WK 2026 TRACKER</p><h3 class="font-display text-lg font-semibold">FIFA World Cup</h3></div>
-            </div>
-            <div class="flex items-center gap-2">
-              <button id="wk-notify-btn" class="btn-ghost text-[11px] px-3 py-1.5 rounded-full flex items-center gap-1.5"><i data-lucide="bell" class="w-3.5 h-3.5"></i> Meldingen</button>
-              <span id="wk-updated" class="text-[11px] font-mono text-[var(--text-3)]">—</span>
-              <i data-lucide="refresh-cw" id="wk-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--amber-soft)] transition hover:rotate-90"></i>
-            </div>
-          </div>
-          <div id="wk-live-zone" class="mb-4"></div>
-          <p class="text-[10px] font-mono text-[var(--text-2)] mb-2 uppercase tracking-wider">Aankomende wedstrijden</p>
-          <div id="wk-upcoming" class="space-y-2"></div>
-        </div>
       </div>
     </section>
 
@@ -689,7 +663,7 @@
             <button id="month-next" class="btn-ghost w-8 h-8 rounded-full flex items-center justify-center"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
           </div>
         </div>
-        <div class="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-mono text-[var(--text-2)]">
+        <div id="month-weekday-header" class="grid grid-cols-7 gap-2 mb-2 text-center text-[11px] font-mono text-[var(--text-2)]">
           <div>MA</div><div>DI</div><div>WO</div><div>DO</div><div>VR</div><div>ZA</div><div>ZO</div>
         </div>
         <div id="month-grid" class="grid grid-cols-7 gap-2"></div>
@@ -833,27 +807,6 @@
       </div>
     </section>
 
-    <!-- PAGE: WK -->
-    <section id="page-wk" class="page">
-      <div class="panel p-6 mb-5">
-        <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
-          <h3 class="font-display text-lg font-semibold">Groepsfase</h3>
-          <div class="flex items-center gap-2">
-            <span id="wkgroups-updated" class="text-[11px] font-mono text-[var(--text-3)]">—</span>
-            <i data-lucide="refresh-cw" id="wkgroups-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--amber-soft)] transition hover:rotate-90"></i>
-          </div>
-        </div>
-        <p class="text-xs text-[var(--text-3)] mb-4">Live stand via ESPN. Groen streepje = kwalificeert zich momenteel.</p>
-        <div id="wk-groups-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </div>
-
-      <div class="panel p-6">
-        <h3 class="font-display text-lg font-semibold mb-1">Knock-outschema</h3>
-        <p class="text-xs text-[var(--text-3)] mb-4">Wedstrijden na de groepsfase, ingedeeld per ronde op basis van de officiële WK-kalender (28/06–19/07).</p>
-        <div id="wk-knockout" class="space-y-4"></div>
-      </div>
-    </section>
-
     <!-- PAGE: TAKEN -->
     <section id="page-taken" class="page">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
@@ -967,7 +920,7 @@
         </div>
       </div>
 
-      <div class="panel p-6">
+      <div class="panel p-6 mb-5">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h3 class="font-display text-lg font-semibold">Collectie</h3>
           <div class="flex gap-1" id="vintage-filter-tabs">
@@ -975,6 +928,15 @@
             <button data-vfilter="verkocht" class="period-tab">Verkocht</button>
             <button data-vfilter="voorraad" class="period-tab">Nog te verkopen</button>
           </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <input id="vintage-search" type="text" placeholder="Zoeken op merk of naam…" class="flex-1 min-w-[160px] bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
+          <select id="vintage-merk-filter" class="bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
+            <option value="">Alle merken</option>
+          </select>
+          <select id="vintage-naam-filter" class="bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
+            <option value="">Alle namen</option>
+          </select>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm" style="border-collapse:collapse">
@@ -987,6 +949,22 @@
             <tbody id="vintage-table-body"></tbody>
           </table>
         </div>
+      </div>
+
+      <div class="panel p-6">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div><p class="text-xs font-mono text-[var(--text-2)] mb-1">VERKOOP & BERICHTEN</p><h3 class="font-display text-lg font-semibold">Vintage shop log</h3></div>
+          <button id="sale-add-btn-open" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Log</button>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-3" id="sales-filter-tabs">
+          <button data-filter="alles" class="period-tab active" style="padding:2px 9px">Alles</button>
+          <button data-filter="te_verzenden" class="period-tab" style="padding:2px 9px">Te verzenden</button>
+          <button data-filter="verzonden" class="period-tab" style="padding:2px 9px">Verzonden</button>
+          <button data-filter="op_te_halen" class="period-tab" style="padding:2px 9px">Op te halen</button>
+          <button data-filter="opgehaald" class="period-tab" style="padding:2px 9px">Opgehaald</button>
+        </div>
+        <div id="sales-log" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
+        <p class="text-[11px] text-[var(--text-3)] mt-3 leading-relaxed">Automatische meldingen van Vinted, 2dehands, Etsy of Marktplaats kan dit lokale bestand niet ontvangen — log ze hier zelf voor een overzicht op één plek.</p>
       </div>
     </section>
 
@@ -1438,7 +1416,7 @@ function showToast(msg, icon){
 const titles = {
   dashboard:['Command Deck','Overzicht van vandaag'], financien:['Financiën','Uitgaven, vaste lasten & budget'],
   rooster:['Rooster','Shiftplanning deze maand'], loon:['Werk','Werkdagen, uurloon, shiftpremies & verlof'],
-  wk:['WK 2026','Groepsfase & knock-outschema'], taken:['Taken','Alle actiepunten'],
+  taken:['Taken','Alle actiepunten'],
   eten:['Eten','Recepten & boodschappen'],
   vintage:['Vintage Shop','Aankoop, verkoop & winst per item'],
 };
@@ -3060,7 +3038,26 @@ function speak(text){
 /* ============ RECEPTEN (Eten) ============ */
 /* ============ VINTAGE SHOP (aankoop/verkoop/winst) ============ */
 let vintageFilter = 'alles';
+let vintageMerkFilter = '';
+let vintageNaamFilter = '';
+let vintageSearch = '';
 function vintageWinst(item){ return item.verkoop!=null ? (item.verkoop - item.aankoop) : null; }
+function populateVintageFilterOptions(items){
+  const merkSel = $id('vintage-merk-filter');
+  const naamSel = $id('vintage-naam-filter');
+  if(merkSel){
+    const merken = [...new Set(items.map(i=>i.merk).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const prev = vintageMerkFilter;
+    merkSel.innerHTML = '<option value="">Alle merken</option>' + merken.map(m=>`<option value="${m}"${m===prev?' selected':''}>${m}</option>`).join('');
+    if(!merken.includes(prev)) vintageMerkFilter = '';
+  }
+  if(naamSel){
+    const namen = [...new Set(items.map(i=>i.naam).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    const prev = vintageNaamFilter;
+    naamSel.innerHTML = '<option value="">Alle namen</option>' + namen.map(n=>`<option value="${n}"${n===prev?' selected':''}>${n}</option>`).join('');
+    if(!namen.includes(prev)) vintageNaamFilter = '';
+  }
+}
 function renderVintage(){
   const items = state.vintageItems || [];
   const verkocht = items.filter(i=>i.verkoop!=null);
@@ -3078,7 +3075,16 @@ function renderVintage(){
   setText('vintage-geinvesteerd', 'geïnvesteerd ' + fmtEUR(geinvesteerd));
   setText('vintage-totaal-items', String(items.length));
 
-  const filtered = vintageFilter==='verkocht' ? verkocht : vintageFilter==='voorraad' ? voorraad : items;
+  populateVintageFilterOptions(items);
+
+  const statusFiltered = vintageFilter==='verkocht' ? verkocht : vintageFilter==='voorraad' ? voorraad : items;
+  const q = vintageSearch.trim().toLowerCase();
+  const filtered = statusFiltered.filter(i=>{
+    if(vintageMerkFilter && i.merk !== vintageMerkFilter) return false;
+    if(vintageNaamFilter && i.naam !== vintageNaamFilter) return false;
+    if(q && !((i.merk||'').toLowerCase().includes(q) || (i.naam||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
   setHTML('vintage-table-body', filtered.map(item=>{
     const w = vintageWinst(item);
     const wCell = w==null ? '<span class="text-[var(--text-3)]">—</span>' : `<span style="color:${w<0?'var(--danger)':'var(--success)'}">${fmtEUR(w)}</span>`;
@@ -3120,6 +3126,12 @@ function bindVintage(){
       btn.classList.add('active'); vintageFilter = btn.dataset.vfilter; renderVintage();
     });
   });
+  const searchEl = $id('vintage-search');
+  if(searchEl) searchEl.addEventListener('input', ()=>{ vintageSearch = searchEl.value; renderVintage(); });
+  const merkFilterEl = $id('vintage-merk-filter');
+  if(merkFilterEl) merkFilterEl.addEventListener('change', ()=>{ vintageMerkFilter = merkFilterEl.value; renderVintage(); });
+  const naamFilterEl = $id('vintage-naam-filter');
+  if(naamFilterEl) naamFilterEl.addEventListener('change', ()=>{ vintageNaamFilter = naamFilterEl.value; renderVintage(); });
   $id('vintage-add-btn').addEventListener('click', ()=>{
     const merkEl=$id('vintage-merk'), naamEl=$id('vintage-naam'), aankoopEl=$id('vintage-aankoop'), verkoopEl=$id('vintage-verkoop-new');
     const merk = merkEl.value.trim(), naam = naamEl.value.trim(), aankoop = parseFloat(aankoopEl.value);
@@ -3472,21 +3484,17 @@ function renderAll(){
   safeRender(renderLoonPage); safeRender(renderRecurring); safeRender(renderRecipes); safeRender(renderWeekStrip); safeRender(renderVintage);
 }
 safeRender(bindTodoClicks); safeRender(bindMonthNav); safeRender(bindCalendarClicks); safeRender(bindActions); safeRender(bindExpenseForm);
-safeRender(bindQuickNotes); safeRender(bindSalesLog); safeRender(bindSettings); safeRender(bindCustomBills); safeRender(bindFuel); safeRender(bindWK);
-safeRender(bindLoonPage); safeRender(bindWKGroups); safeRender(bindAIBar); safeRender(bindRecurring); safeRender(bindRecipes); safeRender(bindCommute); safeRender(bindSync); safeRender(bindVintage);
+safeRender(bindQuickNotes); safeRender(bindSalesLog); safeRender(bindSettings); safeRender(bindCustomBills); safeRender(bindFuel);
+safeRender(bindLoonPage); safeRender(bindAIBar); safeRender(bindRecurring); safeRender(bindRecipes); safeRender(bindCommute); safeRender(bindSync); safeRender(bindVintage);
 renderAll();
 safeRender(fetchWeather);
 safeRender(fetchFuelPrices);
-safeRender(fetchWK);
-safeRender(fetchWKGroups);
 safeRender(fetchCommute);
 if(syncActief()) initCloudSync();
 setInterval(()=>{ safeRender(renderTime); safeRender(renderBriefing); }, 1000);
 setInterval(()=>{ safeRender(renderFocus); }, 30000);
 setInterval(()=>{ safeRender(fetchWeather); }, 15*60*1000);
 setInterval(()=>{ safeRender(fetchFuelPrices); }, 5*60*1000);
-setInterval(()=>{ safeRender(fetchWK); }, 60*1000);
-setInterval(()=>{ safeRender(fetchWKGroups); }, 5*60*1000);
 setInterval(()=>{ safeRender(fetchCommute); }, 10*60*1000);
 setInterval(()=>{ if(syncActief()) safeRender(initCloudSync); }, 5*60*1000);
 </script>
