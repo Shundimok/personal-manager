@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Command Deck — Persoonlijk Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -25,7 +25,7 @@
     --success:#34d399; --warning:#fbbf24; --danger:#f87171;
   }
   *{box-sizing:border-box;}
-  html,body{ background:var(--bg-deep); color:var(--text-1); font-family:'Inter',sans-serif; margin:0; -webkit-font-smoothing:antialiased; }
+  html,body{ background:var(--bg-deep); color:var(--text-1); font-family:'Inter',sans-serif; margin:0; -webkit-font-smoothing:antialiased; touch-action:manipulation; }
   .font-display{font-family:'Space Grotesk',sans-serif;}
   .font-mono{font-family:'JetBrains Mono',monospace;}
   .glow-text{ transition:text-shadow 1.2s ease, color 1.2s ease; text-shadow:0 0 14px var(--purple), 0 0 34px rgba(34,211,238,0.25); }
@@ -72,6 +72,9 @@
   @keyframes pulse-beacon-purple{ 0%{box-shadow:0 0 0 0 rgba(168,85,247,0.55);} 70%{box-shadow:0 0 0 10px rgba(168,85,247,0);} 100%{box-shadow:0 0 0 0 rgba(168,85,247,0);} }
 
   .orbit-wrap{ position:absolute; right:18px; top:18px; width:150px; height:150px; opacity:0.9; }
+  @media (max-width:640px){
+    .orbit-wrap{ width:92px; height:92px; right:12px; top:12px; opacity:0.8; }
+  }
   .orb-core{ position:absolute; inset:38px; border-radius:50%;
     background:radial-gradient(circle at 35% 30%, #d8b4fe, var(--purple) 45%, #1e1440 100%);
     box-shadow:0 0 40px rgba(168,85,247,0.55), 0 0 90px rgba(96,165,250,0.25); animation:orb-breathe 5s ease-in-out infinite; transition:background 1s ease; }
@@ -262,6 +265,14 @@
   .calc-keys span{ flex:1; text-align:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
     border-radius:8px; padding:5px 2px; font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--text-3); }
 
+  /* ===== Overurenteller widget (amber variant, visually distinct from Dagcalculator) ===== */
+  .calc-widget.overuren-widget{ background:linear-gradient(155deg,#26190a,#1a1006); border-color:rgba(251,191,36,0.4);
+    box-shadow:0 20px 40px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(251,191,36,0.12); }
+  .calc-widget.overuren-widget .calc-screen{ background:#1a1204; border-color:rgba(251,191,36,0.35);
+    color:#fcd34d; text-shadow:0 0 8px rgba(252,211,77,0.55);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,0.6), 0 0 18px rgba(251,191,36,0.15); }
+  .calc-widget.overuren-widget .calc-date-input{ border-color:rgba(251,191,36,0.2); }
+
   /* ===== WK knockout boomdiagram ===== */
   .bracket-scroll{ overflow-x:auto; padding-bottom:8px; }
   .bracket-tree{ display:flex; align-items:center; gap:18px; min-width:900px; }
@@ -349,7 +360,7 @@
           <span id="status-beacon" class="beacon"></span>
           <span id="status-text">Systeem actief</span>
         </div>
-        <div class="font-mono text-sm sm:text-base tracking-wider" id="live-clock">00:00:00</div>
+        <div class="font-mono text-lg sm:text-base font-semibold sm:font-normal tracking-wider bg-white/[0.05] sm:bg-transparent border border-white/10 sm:border-0 rounded-full px-3 py-1.5 sm:px-0 sm:py-0" id="live-clock">00:00:00</div>
       </div>
     </header>
 
@@ -375,14 +386,15 @@
       <div class="dash-grid grid grid-cols-1 lg:grid-cols-[1.15fr_1fr_1fr] gap-5">
 
         <div class="panel p-6 sm:p-8 relative overflow-hidden min-h-[420px] lg:row-span-2">
-          <div class="orbit-wrap hidden sm:block">
+          <div class="orbit-wrap">
             <div class="ring r3"></div><div class="ring r2"></div><div class="ring"></div>
             <div class="pulse-ring"></div><div class="pulse-ring d1"></div><div class="pulse-ring d2"></div>
             <div class="orb-core"></div>
           </div>
           <p class="text-[var(--text-2)] text-sm font-mono mb-1">DAILY BRIEFING</p>
           <h2 id="greeting" class="font-display text-2xl sm:text-3xl font-semibold mb-1 max-w-[70%] glow-text">Systeem wordt gestart…</h2>
-          <p id="greeting-sub" class="text-[var(--text-2)] text-sm mb-8 max-w-[75%]">Even geduld.</p>
+          <p id="greeting-sub" class="text-[var(--text-2)] text-sm mb-1 max-w-[75%]">Even geduld.</p>
+          <div id="live-clock-briefing" class="font-mono text-3xl sm:hidden font-semibold tracking-wider mb-7 glow-text">00:00:00</div>
 
           <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-5 mb-5">
             <div class="flex items-center gap-2 mb-2 text-[var(--text-2)] text-xs font-mono uppercase tracking-wider">
@@ -402,6 +414,37 @@
               <i data-lucide="target" class="w-3.5 h-3.5"></i> Focus van vandaag
             </div>
             <div id="today-focus" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <div class="panel p-6" id="commute-card">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="car" class="w-4 h-4 text-[var(--cyan-soft)]"></i>
+              <div><p class="text-xs font-mono text-[var(--text-2)] mb-0.5">WOON-WERKVERKEER</p><h3 class="font-display text-lg font-semibold">Van Urselstraat → Polderdijkweg</h3></div>
+            </div>
+            <i data-lucide="refresh-cw" id="commute-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--cyan-soft)] transition hover:rotate-90"></i>
+          </div>
+          <div id="commute-body" class="text-sm text-[var(--text-2)]">—</div>
+        </div>
+
+        <div class="panel p-6" id="weather-card">
+          <svg class="cloud-decor" style="top:10px; animation-duration:42s;" width="70" height="34" viewBox="0 0 70 34"><ellipse cx="24" cy="20" rx="20" ry="11" fill="white"/><ellipse cx="44" cy="15" rx="15" ry="10" fill="white"/></svg>
+          <svg class="cloud-decor" style="top:60px; animation-duration:58s; animation-delay:-24s;" width="56" height="28" viewBox="0 0 70 34"><ellipse cx="24" cy="20" rx="18" ry="9" fill="white"/><ellipse cx="42" cy="16" rx="13" ry="8" fill="white"/></svg>
+          <div class="weather-content">
+            <div class="flex items-center justify-between mb-4">
+              <div><p class="text-xs font-mono text-[var(--text-2)] mb-1">WEER</p><h3 class="font-display text-lg font-semibold" id="weather-location">Locatie</h3></div>
+              <i data-lucide="refresh-cw" id="weather-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--cyan-soft)] transition hover:rotate-90"></i>
+            </div>
+            <div id="weather-body" class="flex items-center gap-4 min-h-[56px]">
+              <div class="weather-icon-float"><i data-lucide="loader" class="w-9 h-9 text-[var(--text-2)]"></i></div>
+              <p class="text-sm text-[var(--text-2)]">Weer wordt geladen…</p>
+            </div>
+            <div id="weather-extra" class="flex gap-2 mb-4"></div>
+            <p class="text-[10px] font-mono text-[var(--text-3)] mt-4 mb-1">KOMENDE UREN</p>
+            <div id="weather-hourly" class="flex gap-2 text-center mb-3 overflow-x-auto pb-1"></div>
+            <div id="weather-forecast" class="grid grid-cols-4 gap-2"></div>
+            <p id="weather-updated" class="text-[10px] font-mono text-[var(--text-3)] mt-3 text-right">—</p>
           </div>
         </div>
 
@@ -426,24 +469,18 @@
           <div id="week-bills-list" class="mt-5 space-y-2"></div>
         </div>
 
-        <div class="panel p-6" id="weather-card">
-          <svg class="cloud-decor" style="top:10px; animation-duration:42s;" width="70" height="34" viewBox="0 0 70 34"><ellipse cx="24" cy="20" rx="20" ry="11" fill="white"/><ellipse cx="44" cy="15" rx="15" ry="10" fill="white"/></svg>
-          <svg class="cloud-decor" style="top:60px; animation-duration:58s; animation-delay:-24s;" width="56" height="28" viewBox="0 0 70 34"><ellipse cx="24" cy="20" rx="18" ry="9" fill="white"/><ellipse cx="42" cy="16" rx="13" ry="8" fill="white"/></svg>
-          <div class="weather-content">
-            <div class="flex items-center justify-between mb-4">
-              <div><p class="text-xs font-mono text-[var(--text-2)] mb-1">WEER</p><h3 class="font-display text-lg font-semibold" id="weather-location">Locatie</h3></div>
-              <i data-lucide="refresh-cw" id="weather-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--cyan-soft)] transition hover:rotate-90"></i>
+        <div class="panel p-6" id="fuel-card">
+          <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
+            <div class="flex items-center gap-2"><i data-lucide="fuel" class="w-4 h-4 text-[var(--amber-soft)]"></i>
+              <div><p class="text-xs font-mono text-[var(--text-2)] mb-0.5">FUEL TRACKER</p><h3 class="font-display text-lg font-semibold">Q8 Antwerpen</h3></div>
             </div>
-            <div id="weather-body" class="flex items-center gap-4 min-h-[56px]">
-              <div class="weather-icon-float"><i data-lucide="loader" class="w-9 h-9 text-[var(--text-2)]"></i></div>
-              <p class="text-sm text-[var(--text-2)]">Weer wordt geladen…</p>
+            <div class="flex items-center gap-2">
+              <span id="fuel-updated" class="text-[11px] font-mono text-[var(--text-3)]">—</span>
+              <i data-lucide="refresh-cw" id="fuel-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--amber-soft)] transition hover:rotate-90"></i>
             </div>
-            <div id="weather-extra" class="flex gap-2 mb-4"></div>
-            <p class="text-[10px] font-mono text-[var(--text-3)] mt-4 mb-1">KOMENDE UREN</p>
-            <div id="weather-hourly" class="flex gap-2 text-center mb-3 overflow-x-auto pb-1"></div>
-            <div id="weather-forecast" class="grid grid-cols-4 gap-2"></div>
-            <p id="weather-updated" class="text-[10px] font-mono text-[var(--text-3)] mt-3 text-right">—</p>
           </div>
+          <div id="fuel-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+          <p id="fuel-note" class="text-[11px] text-[var(--text-3)] mt-4 leading-relaxed"></p>
         </div>
 
         <div class="panel p-6">
@@ -456,33 +493,6 @@
             <button id="qa-checkall" class="btn-ghost text-xs px-3 py-2 rounded-full flex items-center gap-1.5"><i data-lucide="check-check" class="w-3.5 h-3.5"></i> Vandaag afvinken</button>
           </div>
           <div id="todo-list-mini" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></div>
-        </div>
-
-        <div class="lg:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div class="panel p-6" id="commute-card">
-            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-              <div class="flex items-center gap-2">
-                <i data-lucide="car" class="w-4 h-4 text-[var(--cyan-soft)]"></i>
-                <div><p class="text-xs font-mono text-[var(--text-2)] mb-0.5">WOON-WERKVERKEER</p><h3 class="font-display text-lg font-semibold">Van Urselstraat → Polderdijkweg</h3></div>
-              </div>
-              <i data-lucide="refresh-cw" id="commute-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--cyan-soft)] transition hover:rotate-90"></i>
-            </div>
-            <div id="commute-body" class="text-sm text-[var(--text-2)]">—</div>
-          </div>
-
-          <div class="panel p-6" id="fuel-card">
-            <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
-              <div class="flex items-center gap-2"><i data-lucide="fuel" class="w-4 h-4 text-[var(--amber-soft)]"></i>
-                <div><p class="text-xs font-mono text-[var(--text-2)] mb-0.5">FUEL TRACKER</p><h3 class="font-display text-lg font-semibold">Q8 Antwerpen</h3></div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span id="fuel-updated" class="text-[11px] font-mono text-[var(--text-3)]">—</span>
-                <i data-lucide="refresh-cw" id="fuel-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--amber-soft)] transition hover:rotate-90"></i>
-              </div>
-            </div>
-            <div id="fuel-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
-            <p id="fuel-note" class="text-[11px] text-[var(--text-3)] mt-4 leading-relaxed"></p>
-          </div>
         </div>
 
         <div class="panel p-6" id="grocery-card">
@@ -640,21 +650,6 @@
     <!-- PAGE: ROOSTER -->
     <section id="page-rooster" class="page">
       <div class="panel p-6 mb-5">
-        <h3 class="font-display text-lg font-semibold mb-1">Shiftstructuur</h3>
-        <p class="text-sm text-[var(--text-2)] mb-4">Volcontinu systeem in 4 ploegen. Rotatie: <strong class="text-[var(--purple-soft)]">C — Nacht</strong> → <strong class="text-[var(--blue-soft)]">B — Laat</strong> → <strong class="text-[var(--amber-soft)]">A — Vroeg</strong>. Na een vroege of late dienstreeks volgen 2 rustdagen, na een nachtreeks 3 rustdagen. Taken uit je Takenlijst staan ook op de kalender (cyaan stipje), en ingegeven verlofdagen (zie tab Loon) overschrijven de normale dienst.</p>
-        <div class="flex flex-wrap gap-3">
-          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--amber)]"></span> A — Vroege dienst 06:00–14:00</div>
-          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--blue-soft)]"></span> B — Late dienst 14:00–22:00</div>
-          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--purple)]"></span> C — Nachtdienst 22:00–06:00</div>
-          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--cyan)]"></span> Rustdag</div>
-          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:#f9a8d4"></span> Verlof</div>
-          <div class="chip flex items-center gap-1.5"><i data-lucide="star" class="w-3 h-3 text-[var(--amber)]"></i> Belgische feestdag</div>
-          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--cyan-soft)]"></span> Taak gepland</div>
-        </div>
-        <p class="text-xs text-[var(--text-3)] mt-4">Het rooster loopt automatisch door op basis van je 4-weekse cyclus vanaf 29/06/2026 (7 dagen nacht, 3 rust, 7 dagen laat, 2 rust, 7 dagen vroeg, 2 rust).</p>
-      </div>
-
-      <div class="panel p-6">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h3 id="month-label" class="font-display text-lg font-semibold">—</h3>
           <div class="flex items-center gap-2">
@@ -668,15 +663,25 @@
         </div>
         <div id="month-grid" class="grid grid-cols-7 gap-2"></div>
       </div>
+
+      <div class="panel p-6">
+        <h3 class="font-display text-lg font-semibold mb-1">Shiftstructuur</h3>
+        <p class="text-sm text-[var(--text-2)] mb-4">Volcontinu systeem in 4 ploegen. Rotatie: <strong class="text-[var(--purple-soft)]">C — Nacht</strong> → <strong class="text-[var(--blue-soft)]">B — Laat</strong> → <strong class="text-[var(--amber-soft)]">A — Vroeg</strong>. Na een vroege of late dienstreeks volgen 2 rustdagen, na een nachtreeks 3 rustdagen. Taken uit je Takenlijst staan ook op de kalender (cyaan stipje), en ingegeven verlofdagen (zie tab Loon) overschrijven de normale dienst.</p>
+        <div class="flex flex-wrap gap-3">
+          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--amber)]"></span> A — Vroege dienst 06:00–14:00</div>
+          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--blue-soft)]"></span> B — Late dienst 14:00–22:00</div>
+          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--purple)]"></span> C — Nachtdienst 22:00–06:00</div>
+          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--cyan)]"></span> Rustdag</div>
+          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:#f9a8d4"></span> Verlof</div>
+          <div class="chip flex items-center gap-1.5"><i data-lucide="star" class="w-3 h-3 text-[var(--amber)]"></i> Belgische feestdag</div>
+          <div class="chip flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--cyan-soft)]"></span> Taak gepland</div>
+        </div>
+        <p class="text-xs text-[var(--text-3)] mt-4">Het rooster loopt automatisch door op basis van je 4-weekse cyclus vanaf 29/06/2026 (7 dagen nacht, 3 rust, 7 dagen laat, 2 rust, 7 dagen vroeg, 2 rust).</p>
+      </div>
     </section>
 
     <!-- PAGE: LOON -->
     <section id="page-loon" class="page">
-      <div class="panel p-4 mb-5 flex items-center gap-3">
-        <i data-lucide="info" class="w-4 h-4 text-[var(--cyan-soft)] shrink-0"></i>
-        <p class="text-xs text-[var(--text-2)]">Basisuurloon = je exacte bruto uurloon (<strong class="text-[var(--text-1)]">€36,6258/u</strong>, "plat", zonder shiftpremie), toegepast op 8u per effectief gewerkte of verlofdag. Shiftpremie is bovenop, per shift/verlofdag variabel. Belangrijk: basisloon van deze maand wordt op tijd uitbetaald, shiftpremie die je uitbetaald krijgt is die van <strong class="text-[var(--text-1)]">vorige</strong> maand. Je echte loonbrief gebruikt een fijnmaziger tier-systeem dat dit tool niet exact kan nabouwen — beschouw dit als een goede benadering, geen kopie.</p>
-      </div>
-
       <div class="panel p-6 mb-5">
         <p class="text-xs font-mono text-[var(--text-2)] mb-1">WERKOVERZICHT</p>
         <h3 class="font-display text-lg font-semibold mb-4">Deze maand</h3>
@@ -702,7 +707,13 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         <div class="panel p-6">
-          <p class="text-xs font-mono text-[var(--text-2)] mb-1">OPGEBOUWD — DEZE WEEK</p>
+          <div class="flex items-center justify-between mb-1">
+            <p class="text-xs font-mono text-[var(--text-2)]">OPGEBOUWD</p>
+            <div class="flex gap-1" id="basis-period-tabs">
+              <button data-period="week" class="period-tab active" style="padding:2px 10px">Week</button>
+              <button data-period="maand" class="period-tab" style="padding:2px 10px">Maand</button>
+            </div>
+          </div>
           <h3 class="font-display text-lg font-semibold mb-1">Basisuurloon</h3>
           <p id="loon-week-basis-range" class="text-xs text-[var(--text-3)] mb-4">—</p>
           <p id="loon-week-basis-totaal" class="font-display text-3xl font-semibold glow-text">€ 0,00</p>
@@ -732,9 +743,9 @@
       </div>
 
       <div class="flex flex-wrap gap-5 mb-5 items-start">
-        <div class="calc-widget" id="overuren-widget">
+        <div class="calc-widget overuren-widget" id="overuren-widget">
           <div class="calc-header">
-            <p class="text-xs font-mono text-[var(--text-2)] flex items-center gap-1.5"><i data-lucide="timer" class="w-3.5 h-3.5"></i> OVERURENTELLER</p>
+            <p class="text-xs font-mono text-[var(--amber-soft)] flex items-center gap-1.5"><i data-lucide="timer" class="w-3.5 h-3.5"></i> OVERURENTELLER</p>
           </div>
           <div class="calc-screen">
             <div style="font-size:10px; opacity:.7; letter-spacing:.08em;">DEZE MAAND</div>
@@ -781,6 +792,11 @@
           </div>
         </div>
         <div id="verlof-list" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <div class="panel p-4 mb-5 flex items-center gap-3">
+        <i data-lucide="info" class="w-4 h-4 text-[var(--cyan-soft)] shrink-0"></i>
+        <p class="text-xs text-[var(--text-2)]">Basisuurloon = je exacte bruto uurloon (<strong class="text-[var(--text-1)]">€36,6258/u</strong>, "plat", zonder shiftpremie), toegepast op 8u per effectief gewerkte of verlofdag. Shiftpremie is bovenop, per shift/verlofdag variabel. Belangrijk: basisloon van deze maand wordt op tijd uitbetaald, shiftpremie die je uitbetaald krijgt is die van <strong class="text-[var(--text-1)]">vorige</strong> maand. Je echte loonbrief gebruikt een fijnmaziger tier-systeem dat dit tool niet exact kan nabouwen — beschouw dit als een goede benadering, geen kopie.</p>
       </div>
 
       <div class="panel p-6">
@@ -1120,17 +1136,18 @@ document.addEventListener('click', function(e){
 const YEAR = 2026;
 const vasteLasten = [
   { id:'hyp',   naam:'Hypotheek',                  bedrag:1500.00, freqType:'maandelijks', freq:'maandelijks',  dag:30, perPersoon:false, icon:'home' },
-  { id:'gas',   naam:'Gas & Elektriciteit — Engie', bedrag:59.81,   freqType:'maandelijks', freq:'maandelijks',  dag:26, perPersoon:true,  icon:'flame' },
+  { id:'gas',   naam:'Gas & Elektriciteit — Engie', bedrag:59.81,   freqType:'maandelijks', freq:'maandelijks',  dag:12, approx:true, perPersoon:true,  icon:'flame' },
   { id:'water', naam:'Water — Waterlink',          bedrag:34.50,   freqType:'kwartaal',    freq:'per kwartaal', dag:21, kwartaalMaanden:[1,4,7,10], perPersoon:true, icon:'droplets', maandGemiddeld:34.50/3 },
   { id:'net',   naam:'Internet — Orange',          bedrag:23.50,   freqType:'maandelijks', freq:'maandelijks',  dag:25, approx:true, perPersoon:true, icon:'wifi' },
 ];
+// Elk abonnement heeft nu ook een 'dag' (vervaldag), net als vasteLasten, zodat ze mee opduiken
+// bij "Aankomende rekeningen" i.p.v. in de lijst "geen vaste vervaldag bekend".
 const abonnementen = [
-  { id:'sub0', naam:'Claude Pro',      bedrag:22.00, icon:'sparkles' },
-  { id:'sub1', naam:'Patreon Crypto',  bedrag:38.72, icon:'coins' },
-  { id:'sub2', naam:'DAZN',            bedrag:34.99, icon:'tv' },
-  { id:'sub3', naam:'Gmail',           bedrag:1.99,  icon:'mail' },
-  { id:'sub4', naam:'HBO Max',         bedrag:9.99,  icon:'clapperboard' },
-  { id:'sub5', naam:'iCloud+',         bedrag:2.99,  icon:'cloud' },
+  { id:'sub0', naam:'Claude Pro',         bedrag:22.00, dag:22, icon:'sparkles' },
+  { id:'sub2', naam:'DAZN',               bedrag:34.99, dag:23, icon:'tv' },
+  { id:'sub3', naam:'Google One - 100GB', bedrag:1.99,  dag:28, icon:'hard-drive' },
+  { id:'sub5', naam:'iCloud+',            bedrag:2.99,  dag:29, icon:'cloud' },
+  { id:'sub6', naam:'Amazon Prime',       bedrag:2.99,  dag:6,  icon:'shopping-bag' },
 ];
 const jaarlijks = { naam:'Verzekering auto', bedrag:1380.21 };
 const todosDefault = [
@@ -1432,7 +1449,9 @@ document.querySelectorAll('[data-goto]').forEach(btn=> btn.addEventListener('cli
 /* ============ CLOCK ============ */
 function renderTime(){
   const now = new Date();
-  setText('live-clock', now.toLocaleTimeString('nl-BE'));
+  const tijd = now.toLocaleTimeString('nl-BE');
+  setText('live-clock', tijd);
+  setText('live-clock-briefing', tijd);
   setText('live-date', dagNamenLang[now.getDay()] + ' ' + now.getDate() + ' ' + maandNamen[now.getMonth()] + ' ' + now.getFullYear());
 }
 
@@ -1441,8 +1460,8 @@ function isActivelyWorkingNight(now){
   const h = now.getHours();
   const todayShift = getShiftForDate(now);
   const yShift = getShiftForDate(addDays(now,-1));
-  const stillOnNight = !!(yShift && yShift.code==='C' && h<6);
-  const startingNight = !!(todayShift && todayShift.code==='C' && h>=22);
+  const stillOnNight = !!(yShift && yShift.code==='C' && h<6 && !getVerlofForDate(addDays(now,-1)));
+  const startingNight = !!(todayShift && todayShift.code==='C' && h>=22 && !getVerlofForDate(now));
   return stillOnNight || startingNight;
 }
 function applyTimeTheme(){
@@ -1470,13 +1489,18 @@ function renderBriefing(){
 
   const todayShift = getShiftForDate(now);
   const yShift = getShiftForDate(addDays(now,-1));
-  const stillOnNight = !!(yShift && yShift.code==='C' && h<6);
+  const verlofVandaag = getVerlofForDate(now);
+  const verlofGisteren = getVerlofForDate(addDays(now,-1));
+  const stillOnNight = !!(yShift && yShift.code==='C' && h<6 && !verlofGisteren);
   let working=false, title='—', detail='—', sub='', countdownHTML='';
 
   if(stillOnNight){
     working=true; title='Nachtdienst — bezig'; detail='Gestart gisteravond 22:00, C-shift'; sub='Je bent nog aan het werk. Bijna klaar.';
     const eind=new Date(now); eind.setHours(6,0,0,0);
     countdownHTML = '<i data-lucide="hourglass" class="w-3.5 h-3.5"></i> Nog ' + fmtDuration(eind-now) + ' tot einde dienst';
+  } else if(verlofVandaag){
+    title='Verlof — ' + verlofVandaag.type; detail='Geen dienst gepland vandaag.'; sub='Je hebt vandaag verlof. Fijne vrije dag!';
+    countdownHTML = '<i data-lucide="sun" class="w-3.5 h-3.5"></i> Verlofdag actief';
   } else if(todayShift && todayShift.code==='C'){
     title='Nachtdienst — C-shift'; detail='22:00 – 06:00, volcontinu rooster';
     if(h>=22){ working=true; sub='Je bent nu aan het werk.'; const eind=addDays(now,1); eind.setHours(6,0,0,0); countdownHTML='<i data-lucide="hourglass" class="w-3.5 h-3.5"></i> Nog '+fmtDuration(eind-now)+' tot einde dienst'; }
@@ -1560,7 +1584,7 @@ function computeFinance(){
   const now = new Date();
   const weekDays = Array.from({length:7}, (_,i)=> addDays(now,i));
   const weekEnd = weekDays[weekDays.length-1];
-  const weekBills = vasteLasten.filter(item => { const nx = nextOccurrence(item, now); return nx && nx <= weekEnd; });
+  const weekBills = [...vasteLasten, ...abonnementen].filter(item => item.dag!=null).filter(item => { const nx = nextOccurrence(item, now); return nx && nx <= weekEnd; });
   const weekTotal = weekBills.reduce((s,i)=>s+i.bedrag,0);
   const pct = grandTotal>0 ? Math.min(100, Math.round((weekTotal/grandTotal)*100)) : 0;
   return { vasteTotal, abboTotal, grandTotal, weekBills, weekTotal, pct };
@@ -1683,7 +1707,7 @@ function nextOccurrence(item, from){
 function daysUntilDate(target, from){ return Math.round((dateOnly(target) - dateOnly(from)) / 86400000); }
 function renderUpcomingBills(){
   const now = new Date();
-  const known = vasteLasten.filter(i=>i.dag!==null).map(i=>{ const nx=nextOccurrence(i, now); return {...i, nextDate:nx, days:daysUntilDate(nx, now)}; }).sort((a,b)=>a.days-b.days);
+  const known = [...vasteLasten, ...abonnementen].filter(i=>i.dag!=null).map(i=>{ const nx=nextOccurrence(i, now); return {...i, nextDate:nx, days:daysUntilDate(nx, now)}; }).sort((a,b)=>a.days-b.days);
   const html = known.map(item=>{
     const urgent = item.days<=2;
     const badgeTxt = item.days===0?'Vandaag':item.days===1?'Morgen':('Over '+item.days+' dagen');
@@ -1694,8 +1718,12 @@ function renderUpcomingBills(){
           <span class="text-[10px] font-mono ${urgent?'text-[var(--warning)]':'text-[var(--text-3)]'}">${badgeTxt}</span></div></div>`;
   }).join('');
   setHTML('upcoming-bills', html || '<p class="text-sm text-[var(--text-2)]">Niets bekend.</p>');
-  const unknownNames = [...vasteLasten.filter(i=>i.dag===null).map(i=>i.naam), ...abonnementen.map(a=>a.naam)];
-  setText('upcoming-unknown', 'Geen vaste vervaldag bekend in je gegevens: ' + unknownNames.join(', ') + '.');
+  const unknownNames = [...vasteLasten, ...abonnementen].filter(i=>i.dag==null).map(i=>i.naam);
+  const unknownEl = $id('upcoming-unknown');
+  if(unknownEl){
+    if(unknownNames.length===0){ unknownEl.classList.add('hidden'); }
+    else { unknownEl.classList.remove('hidden'); setText('upcoming-unknown', 'Geen vaste vervaldag bekend in je gegevens: ' + unknownNames.join(', ') + '.'); }
+  }
   safeIcons();
 }
 
@@ -2367,7 +2395,7 @@ function nextShiftStart(from){
   for(let i=0;i<40;i++){
     const d = addDays(from,i);
     const shift = getShiftForDate(d);
-    if(shift && !shift.isRest){
+    if(shift && !shift.isRest && !getVerlofForDate(d)){
       const startHour = SHIFT_START_HOUR[shift.code];
       const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate(), startHour, 0, 0);
       if(dt > from) return { datetime:dt, shift };
@@ -2497,7 +2525,7 @@ function renderFuel(data){
     const d = new Date(data.last_update);
     setText('fuel-updated', 'script gedraaid ' + d.toLocaleDateString('nl-BE') + ' ' + d.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'}));
   }
-  setText('fuel-note', data.error ? data.error : 'Bron: carbu.com · vernieuw fuel_prices.json regelmatig door fuel_scraper.py opnieuw te draaien (bv. via Taakplanner/cron).');
+  setText('fuel-note', data.error ? data.error : 'Bron: carbu.com · wordt elke 6 uur automatisch ververst door een GitHub Action.');
   safeIcons();
 }
 function bindFuel(){
@@ -2708,11 +2736,16 @@ function weekBasisEarnings(start, end){
   return { uren, bedrag: uren * state.loonConfig.uurloon, werkdagen, verlofdagen, rustdagen };
 }
 let premiePeriod = 'week';
+let basisPeriod = 'week';
 function renderLoonSummary(){
   const now = new Date();
   const wStart = startOfWeek(now), wEnd = endOfWeek(now);
-  const wb = weekBasisEarnings(wStart, wEnd);
-  setText('loon-week-basis-range', fmtDayShort(wStart) + ' t/m ' + fmtDayShort(wEnd));
+
+  let bStart, bEnd;
+  if(basisPeriod==='week'){ bStart=wStart; bEnd=wEnd; }
+  else { bStart=new Date(now.getFullYear(),now.getMonth(),1); bEnd=new Date(now.getFullYear(),now.getMonth()+1,0); }
+  const wb = weekBasisEarnings(bStart, bEnd);
+  setText('loon-week-basis-range', fmtDayShort(bStart) + ' t/m ' + fmtDayShort(bEnd));
   animateNumber('loon-week-basis-totaal', wb.bedrag, v=>fmtEUR(v));
   setText('loon-week-basis-uren', String(wb.uren));
   setText('loon-week-basis-detail', `(${wb.werkdagen} werkdag${wb.werkdagen===1?'':'en'} + ${wb.verlofdagen} verlofdag${wb.verlofdagen===1?'':'en'} + ${wb.rustdagen} rustdag${wb.rustdagen===1?'':'en'})`);
@@ -2891,6 +2924,12 @@ function bindLoonPage(){
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('#premie-period-tabs .period-tab').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active'); premiePeriod = btn.dataset.period; renderLoonSummary();
+    });
+  });
+  document.querySelectorAll('#basis-period-tabs .period-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#basis-period-tabs .period-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); basisPeriod = btn.dataset.period; renderLoonSummary();
     });
   });
   $id('loon-settings-save').addEventListener('click', ()=>{
@@ -3500,4 +3539,3 @@ setInterval(()=>{ if(syncActief()) safeRender(initCloudSync); }, 5*60*1000);
 </script>
 </body>
 </html>
- 
