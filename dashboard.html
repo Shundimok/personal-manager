@@ -4,6 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Command Deck — Persoonlijk Dashboard</title>
+<link rel="icon" type="image/png" href="favicon.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Command Deck" />
+<meta name="theme-color" content="#0a0d14" />
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +33,7 @@
     --success:#34d399; --warning:#fbbf24; --danger:#f87171;
   }
   *{box-sizing:border-box;}
-  html,body{ background:var(--bg-deep); color:var(--text-1); font-family:'Inter',sans-serif; margin:0; -webkit-font-smoothing:antialiased; touch-action:manipulation; }
+  html,body{ background:var(--bg-deep); color:var(--text-1); font-family:'Inter',sans-serif; margin:0; -webkit-font-smoothing:antialiased; touch-action:manipulation; overflow-x:hidden; max-width:100vw; }
   .font-display{font-family:'Space Grotesk',sans-serif;}
   .font-mono{font-family:'JetBrains Mono',monospace;}
   .glow-text{ transition:text-shadow 1.2s ease, color 1.2s ease; text-shadow:0 0 14px var(--purple), 0 0 34px rgba(34,211,238,0.25); }
@@ -411,7 +419,12 @@
             <div id="next-rest" class="mt-2 flex items-center gap-2 text-xs font-mono text-[var(--text-2)]"></div>
           </div>
 
-          <div id="overdue-warning" class="hidden rounded-2xl border border-[var(--danger)]/50 bg-[var(--danger)]/10 p-4 mb-5"></div>
+          <div class="mb-5">
+            <div class="flex items-center gap-2 mb-3 text-[var(--text-2)] text-xs font-mono uppercase tracking-wider">
+              <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i> 7-daags overzicht
+            </div>
+            <div id="week-strip-home" class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1"></div>
+          </div>
 
           <div>
             <div class="flex items-center gap-2 mb-3 text-[var(--text-2)] text-xs font-mono uppercase tracking-wider">
@@ -550,17 +563,29 @@
       </div>
 
       <div class="panel p-6 mb-5">
-        <p class="text-xs font-mono text-[var(--text-2)] mb-1">HEADS-UP</p>
-        <h3 class="font-display text-lg font-semibold mb-1 glow-text">Budgetvoortgang deze maand</h3>
-        <p class="text-xs text-[var(--text-3)] mb-4">Schatting op basis van hoever de maand al gevorderd is — een snelle indicator, geen exacte boekhouding.</p>
-        <div class="h-4 rounded-full bg-white/5 overflow-hidden">
-          <div id="heads-up-bar-fill" class="h-full rounded-full" style="width:0%; background:linear-gradient(90deg,var(--purple),var(--cyan)); transition:width 1s ease;"></div>
+        <p class="text-xs font-mono text-[var(--text-2)] mb-1">DEZE MAAND — ECHTE CIJFERS</p>
+        <h3 class="font-display text-lg font-semibold mb-4">Al uitgegeven &amp; nog over</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p class="text-xs text-[var(--text-2)] mb-1">Al uitgegeven</p>
+            <p id="maand-al-uitgegeven" class="font-display text-2xl font-semibold glow-text">€ 0,00</p>
+            <p id="maand-al-detail" class="text-[11px] text-[var(--text-3)] mt-1">—</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p class="text-xs text-[var(--text-2)] mb-1">Nog te vervallen (vaste lasten)</p>
+            <p id="maand-nog-over" class="font-display text-2xl font-semibold" style="color:var(--cyan-soft)">€ 0,00</p>
+            <p id="maand-nog-detail" class="text-[11px] text-[var(--text-3)] mt-1">—</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p class="text-xs text-[var(--text-2)] mb-1">Dagelijkse uitgaven deze maand</p>
+            <p id="maand-dagelijks" class="font-display text-2xl font-semibold" style="color:var(--amber-soft)">€ 0,00</p>
+            <p id="maand-dagelijks-detail" class="text-[11px] text-[var(--text-3)] mt-1">—</p>
+          </div>
         </div>
-        <div class="flex justify-between mt-2 text-xs flex-wrap gap-2">
-          <span class="text-[var(--text-2)]">Verwacht al besteed: <span id="heads-up-spent" class="font-mono text-[var(--text-1)]">€0</span></span>
-          <span class="text-[var(--text-2)]">Nog te verwachten: <span id="heads-up-left" class="font-mono text-[var(--cyan-soft)]">€0</span></span>
+        <div class="h-3 rounded-full bg-white/5 overflow-hidden">
+          <div id="maand-bar-fill" class="h-full rounded-full" style="width:0%; background:linear-gradient(90deg,var(--purple),var(--cyan)); transition:width 1s ease;"></div>
         </div>
-        <p id="heads-up-detail" class="text-xs text-[var(--text-3)] mt-3"></p>
+        <p class="text-[11px] text-[var(--text-3)] mt-2">Gebaseerd op echt gelogde vervaldagen van vaste lasten/abonnementen + je gelogde dagelijkse uitgaven — geen schatting.</p>
       </div>
 
       <div class="panel p-6 mb-5">
@@ -616,7 +641,7 @@
           <div id="expense-chart" class="flex items-end gap-2 h-24"></div>
         </div>
 
-        <div class="flex flex-wrap gap-2 mb-4">
+        <div class="flex flex-wrap gap-2 mb-3">
           <input id="exp-bedrag" type="number" step="0.01" min="0" placeholder="Bedrag €" class="w-28 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
           <select id="exp-categorie" class="bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
             <option>Boodschappen</option><option>Vervoer</option><option>Vrije tijd</option><option>Horeca</option>
@@ -625,6 +650,11 @@
           <input id="exp-omschrijving" type="text" placeholder="Omschrijving (optioneel)" class="flex-1 min-w-[140px] bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
           <input id="exp-datum" type="date" class="bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
           <button id="exp-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
+        </div>
+        <div class="flex items-center gap-2 mb-4">
+          <button id="exp-csv-import-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> Importeer CSV van je bank</button>
+          <input id="exp-csv-file" type="file" accept=".csv,text/csv" class="hidden" />
+          <span class="text-[11px] text-[var(--text-3)]">Export je transacties bij Argenta (of een andere bank) als CSV en importeer hier — enkel uitgaande bedragen worden toegevoegd, als "Overig". Er kan geen automatische live-koppeling met je bank gemaakt worden vanuit dit dashboard (geen bank staat dat toe zonder officiële erkenning) — dit is de dichtstbijzijnde werkbare oplossing.</span>
         </div>
         <div id="expense-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
       </div>
@@ -666,6 +696,15 @@
           <div>MA</div><div>DI</div><div>WO</div><div>DO</div><div>VR</div><div>ZA</div><div>ZO</div>
         </div>
         <div id="month-grid" class="grid grid-cols-7 gap-2"></div>
+      </div>
+
+      <div class="panel p-6 mb-5">
+        <h3 class="font-display text-lg font-semibold mb-4">Snel iets in je agenda zetten</h3>
+        <div class="flex flex-wrap gap-2">
+          <input id="rooster-task-input" type="text" placeholder="Nieuwe taak / afspraak…" class="flex-1 min-w-[160px] basis-full sm:basis-auto bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
+          <input id="rooster-task-date" type="date" title="Datum" class="flex-1 min-w-0 sm:flex-none bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+          <button id="rooster-task-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
+        </div>
       </div>
 
       <div class="panel p-6">
@@ -786,6 +825,29 @@
       </div>
 
       <div class="panel p-6 mb-5">
+        <p class="text-xs font-mono text-[var(--text-2)] mb-1">EXTRA PRESTATIES</p>
+        <h3 class="font-display text-lg font-semibold mb-1">Bijkomende prestaties bijhouden</h3>
+        <p class="text-xs text-[var(--text-3)] mb-4">Log hier extra prestaties zoals een 8ste dag, vroeger opkomen, langer blijven of een call-out — puur als overzicht, dit telt (nog) niet automatisch mee in de loonberekening hierboven.</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <input id="extraprest-datum" type="date" class="bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+          <select id="extraprest-type" class="bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
+            <option value="8ste dag">8ste dag</option>
+            <option value="Vroeger opkomen">Vroeger opkomen</option>
+            <option value="Langer blijven">Langer blijven</option>
+            <option value="Call-out">Call-out</option>
+          </select>
+          <select id="extraprest-shift" class="hidden bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
+            <option value="A">A — Vroege dienst</option>
+            <option value="B">B — Late dienst</option>
+            <option value="C">C — Nachtdienst</option>
+          </select>
+          <input id="extraprest-omschrijving" type="text" placeholder="Notitie (optioneel)" class="flex-1 min-w-[140px] bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
+          <button id="extraprest-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
+        </div>
+        <div id="extraprest-list" class="space-y-2 max-h-[240px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <div class="panel p-6 mb-5">
         <p class="text-xs font-mono text-[var(--text-2)] mb-1">VERLOFSALDO 2026</p>
         <h3 class="font-display text-lg font-semibold mb-4">Verlofdagen per type</h3>
         <div id="verlof-saldo-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5"></div>
@@ -833,6 +895,12 @@
 
     <!-- PAGE: TAKEN -->
     <section id="page-taken" class="page">
+      <div class="panel p-6 mb-5">
+        <p class="text-xs font-mono text-[var(--text-2)] mb-1">7-DAAGS OVERZICHT</p>
+        <h3 class="font-display text-lg font-semibold mb-4">Taken deze week vooruit</h3>
+        <div id="week-strip" class="grid grid-cols-1 sm:grid-cols-7 gap-3"></div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         <div class="panel p-5">
           <div class="flex items-center gap-2 mb-3"><i data-lucide="sun" class="w-4 h-4 text-[var(--purple-soft)]"></i><h3 class="font-display text-base font-semibold">Alle taken vandaag</h3></div>
@@ -847,8 +915,8 @@
       <div class="panel p-6 mb-5">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div class="flex items-center gap-2"><i data-lucide="repeat" class="w-4 h-4 text-[var(--cyan-soft)]"></i><h3 class="font-display text-lg font-semibold">Wederkerige taken</h3></div>
-          <div class="flex gap-2 w-full sm:w-auto">
-            <input id="recurring-naam" type="text" placeholder="bv. Kat verzorgen" class="flex-1 sm:w-40 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-xs outline-none focus:border-[var(--purple)] transition" />
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <input id="recurring-naam" type="text" placeholder="bv. Kat verzorgen" class="flex-1 min-w-0 sm:w-40 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-xs outline-none focus:border-[var(--purple)] transition" />
             <input id="recurring-interval" type="number" min="1" value="3" placeholder="dagen" class="w-20 bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-xs outline-none focus:border-[var(--purple)] transition font-mono" />
             <button id="recurring-add-btn" class="btn-solid text-white text-xs px-3 py-2 rounded-full font-medium"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
           </div>
@@ -865,20 +933,14 @@
       <div class="panel p-6">
         <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
           <h3 class="font-display text-lg font-semibold">Alle taken</h3>
-          <div class="flex gap-2 w-full sm:w-auto">
-            <input id="task-input" type="text" placeholder="Nieuwe taak…" class="flex-1 sm:w-56 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
-            <input id="task-date" type="date" title="Datum" class="bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
-            <input id="task-deadline" type="date" title="Deadline (optioneel)" class="bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <input id="task-input" type="text" placeholder="Nieuwe taak…" class="flex-1 min-w-0 basis-full sm:basis-auto sm:w-56 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
+            <input id="task-date" type="date" title="Datum" class="flex-1 min-w-0 sm:flex-none bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+            <input id="task-deadline" type="date" title="Deadline (optioneel)" class="flex-1 min-w-0 sm:flex-none bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
             <button id="task-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i></button>
           </div>
         </div>
         <div id="todo-list-full" class="space-y-2"></div>
-      </div>
-
-      <div class="panel p-6 mt-5">
-        <p class="text-xs font-mono text-[var(--text-2)] mb-1">7-DAAGS OVERZICHT</p>
-        <h3 class="font-display text-lg font-semibold mb-4">Taken deze week vooruit</h3>
-        <div id="week-strip" class="grid grid-cols-1 sm:grid-cols-7 gap-3"></div>
       </div>
     </section>
 
@@ -1314,6 +1376,7 @@ if(!state.commuteConfig) state.commuteConfig = { tomtomKey:'', coords:null };
 if(!state.syncConfig) state.syncConfig = { projectId:'', syncId:'' };
 if(state.lastModified === undefined) state.lastModified = 0;
 if(!state.overuren) state.overuren = [];
+if(!state.extraPrestaties) state.extraPrestaties = [];
 if(!state.recurringTasks) state.recurringTasks = [
   { id:'rt_planten', naam:'Planten water geven', intervalDagen:2, icon:'flower-2', laatsteVoltooid:null, geschiedenis:[] },
   { id:'rt_vissen', naam:'Vissen eten geven', intervalDagen:2, icon:'fish', laatsteVoltooid:null, geschiedenis:[] },
@@ -1542,17 +1605,7 @@ function renderBriefing(){
     setHTML('next-rest', '<i data-lucide="battery" class="w-3.5 h-3.5"></i> ' + rustTekst);
   } else setHTML('next-rest', '');
 
-  // Verlopen taken (deadline gepasseerd, nog niet afgevinkt) prominent tonen
-  const verlopen = allTodos().filter(t=> !t.done && t.deadline && new Date(t.deadline+'T23:59:59') < now);
-  const overdueEl = $id('overdue-warning');
-  if(verlopen.length>0){
-    overdueEl.classList.remove('hidden');
-    setHTML('overdue-warning', `
-      <div class="flex items-center gap-2 mb-2 text-[var(--danger)] text-xs font-mono uppercase tracking-wider"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> ${verlopen.length} verlopen taak/taken</div>
-      <div class="space-y-1">${verlopen.map(t=>`<p class="text-sm text-[var(--text-1)]">• ${t.tekst} <span class="text-xs text-[var(--danger)]">(deadline was ${fmtDayShort(new Date(t.deadline+'T00:00:00'))})</span></p>`).join('')}</div>`);
-  } else {
-    overdueEl.classList.add('hidden');
-  }
+  safeRender(renderWeekStripHome);
 
   const beacon = $id('status-beacon'); if(beacon) beacon.classList.toggle('working', working);
   setText('status-text', working ? ('Actieve ' + title.split(' —')[0].toLowerCase()) : 'Systeem stand-by');
@@ -1645,19 +1698,32 @@ function renderFinancePage(){
   safeIcons();
 }
 
-/* ============ HEADS-UP BUDGET PROGRESS ============ */
+/* ============ DEZE MAAND: AL UITGEGEVEN & NOG OVER (op echte data, geen schatting) ============ */
 function renderBudgetProgress(){
   const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-  const frac = now.getDate()/daysInMonth;
-  const f = computeFinance();
-  const spent = f.grandTotal*frac, left = f.grandTotal-spent;
-  const bar = $id('heads-up-bar-fill'); if(bar) bar.style.width = Math.min(100, frac*100).toFixed(1)+'%';
-  animateNumber('heads-up-spent', spent, v=>fmtEUR(v));
-  animateNumber('heads-up-left', left, v=>fmtEUR(v));
-  const knownItems = vasteLasten.filter(i=>i.dag!==null && occursInMonth(i, now.getMonth()));
-  const passed = knownItems.filter(i=>i.dag<=now.getDate());
-  setText('heads-up-detail', passed.length+' van '+knownItems.length+' vaste lasten met gekende vervaldag zijn deze maand al voorbij (dag-gebaseerd).');
+  const mStart = new Date(now.getFullYear(), now.getMonth(), 1), mEnd = new Date(now.getFullYear(), now.getMonth()+1, 0);
+
+  // Vaste lasten + abonnementen: op basis van echte vervaldag, niet geschat.
+  const alleVast = [...vasteLasten, ...abonnementen].filter(i=>i.dag!=null && occursInMonth(i, now.getMonth()));
+  const vervallen = alleVast.filter(i=>i.dag<=now.getDate());
+  const nogTeVervallen = alleVast.filter(i=>i.dag>now.getDate());
+  const vervallenBedrag = vervallen.reduce((s,i)=>s+i.bedrag,0);
+  const nogTeVervallenBedrag = nogTeVervallen.reduce((s,i)=>s+i.bedrag,0);
+
+  // Dagelijkse uitgaven: echt gelogde bedragen deze maand.
+  const dagelijksTotaal = expensesInRange(mStart, mEnd).reduce((s,e)=>s+e.bedrag,0);
+
+  const totaalAlUitgegeven = vervallenBedrag + dagelijksTotaal;
+  const totaalVerwacht = alleVast.reduce((s,i)=>s+i.bedrag,0);
+  const pct = totaalVerwacht>0 ? Math.min(100, (vervallenBedrag/totaalVerwacht)*100) : 0;
+
+  animateNumber('maand-al-uitgegeven', totaalAlUitgegeven, v=>fmtEUR(v));
+  setText('maand-al-detail', vervallen.length+' vaste lasten/abonnementen vervallen + dagelijkse uitgaven');
+  animateNumber('maand-nog-over', nogTeVervallenBedrag, v=>fmtEUR(v));
+  setText('maand-nog-detail', nogTeVervallen.length+' van '+alleVast.length+' nog te vervallen deze maand');
+  animateNumber('maand-dagelijks', dagelijksTotaal, v=>fmtEUR(v));
+  setText('maand-dagelijks-detail', expensesInRange(mStart, mEnd).length+' gelogde uitgave(n) deze maand');
+  const bar = $id('maand-bar-fill'); if(bar) bar.style.width = pct.toFixed(1)+'%';
 }
 
 /* ============ ANDERE REKENINGEN (volledig handmatig — bv. boetes, eenmalige kosten) ============ */
@@ -1807,6 +1873,101 @@ function bindExpenseForm(){
     renderExpenseOverview();
     showToast(ok ? 'Uitgave opgeslagen ✓' : 'Opslaan mislukt!', ok?'receipt':'alert-triangle');
   });
+  bindExpenseCsvImport();
+}
+
+/* ============ CSV-IMPORT UITGAVEN (bv. transactie-export van Argenta) ============
+   Een echte live-koppeling met je bank kan een statisch dashboard zoals dit niet maken
+   (banken staan dat enkel toe aan erkende, gelicenseerde apps via PSD2). Dit is het
+   dichtstbijzijnde alternatief: exporteer je transacties als CSV bij je bank en importeer
+   ze hier. Enkel uitgaande (negatieve) bedragen worden overgenomen als uitgave. */
+function parseCsvLine(line, delim){
+  const out = []; let cur=''; let inQuotes=false;
+  for(let i=0;i<line.length;i++){
+    const c = line[i];
+    if(inQuotes){
+      if(c==='"'){ if(line[i+1]==='"'){ cur+='"'; i++; } else inQuotes=false; }
+      else cur+=c;
+    } else {
+      if(c==='"') inQuotes=true;
+      else if(c===delim){ out.push(cur); cur=''; }
+      else cur+=c;
+    }
+  }
+  out.push(cur);
+  return out.map(s=>s.trim());
+}
+function parseCsvBedrag(raw){
+  if(raw==null) return null;
+  let s = String(raw).trim().replace(/[€\s]/g,'');
+  if(s==='') return null;
+  const neg = /^-/.test(s) || /^\(.*\)$/.test(s);
+  s = s.replace(/^-/,'').replace(/^\(|\)$/g,'');
+  const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.');
+  if(lastComma>lastDot) s = s.replace(/\./g,'').replace(',', '.');
+  else if(lastDot>lastComma) s = s.replace(/,/g,'');
+  const num = parseFloat(s);
+  if(isNaN(num)) return null;
+  return neg ? -num : num;
+}
+function parseCsvDatum(raw){
+  if(!raw) return null;
+  const s = String(raw).trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+  if(m) return new Date(+m[3], +m[2]-1, +m[1]);
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function bankCsvToExpenses(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.trim().length>0);
+  if(lines.length<2) throw new Error('bestand lijkt leeg of heeft geen datarijen');
+  const delim = (lines[0].split(';').length >= lines[0].split(',').length) ? ';' : ',';
+  const header = parseCsvLine(lines[0], delim).map(h=>h.toLowerCase());
+  const findCol = (keywords)=> header.findIndex(h=> keywords.some(k=>h.includes(k)));
+  const dateIdx = findCol(['boekingsdatum','datum','date','valutadatum']);
+  const bedragIdx = findCol(['bedrag','amount']);
+  const omsIdx = findCol(['omschrijving','mededeling','tegenpartij','description','naam']);
+  if(dateIdx===-1 || bedragIdx===-1){
+    throw new Error('kolommen voor datum/bedrag niet herkend (verwacht kolomnamen zoals "Boekingsdatum" en "Bedrag")');
+  }
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const cols = parseCsvLine(lines[i], delim);
+    if(cols.length<2) continue;
+    const bedrag = parseCsvBedrag(cols[bedragIdx]);
+    const datum = parseCsvDatum(cols[dateIdx]);
+    if(bedrag==null || datum==null || bedrag>=0) continue; // enkel uitgaande (negatieve) bedragen
+    rows.push({ bedrag:Math.abs(bedrag), datum, omschrijving: omsIdx>=0 ? cols[omsIdx].slice(0,120) : '' });
+  }
+  return rows;
+}
+function bindExpenseCsvImport(){
+  const btn = $id('exp-csv-import-btn'), fileInput = $id('exp-csv-file');
+  if(!btn || !fileInput) return;
+  btn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', async ()=>{
+    const file = fileInput.files[0]; if(!file) return;
+    try{
+      const text = await file.text();
+      const rows = bankCsvToExpenses(text);
+      if(rows.length===0){ showToast('Geen bruikbare uitgaven gevonden in dit bestand.','alert-circle'); fileInput.value=''; return; }
+      let toegevoegd=0, overgeslagen=0;
+      rows.forEach(r=>{
+        const dupe = state.expenses.some(e=> Math.abs(e.bedrag-r.bedrag)<0.005 && sameDay(new Date(e.datum), r.datum) && (e.omschrijving||'')===(r.omschrijving||''));
+        if(dupe){ overgeslagen++; return; }
+        state.expenses.push({ id:'exp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:r.bedrag, categorie:'Overig', omschrijving:r.omschrijving||'Bank import', datum:r.datum.toISOString() });
+        toegevoegd++;
+      });
+      saveState(state);
+      renderExpenseOverview();
+      showToast(toegevoegd+' uitgave(n) geïmporteerd'+(overgeslagen?', '+overgeslagen+' dubbels overgeslagen':''), 'upload');
+    } catch(e){
+      showToast('Kon CSV niet verwerken: '+e.message, 'alert-triangle');
+    }
+    fileInput.value = '';
+  });
 }
 
 /* ============ MAANDKALENDER (incl. taken en feestdagen) ============ */
@@ -1912,6 +2073,19 @@ function bindMonthNav(){
   if(prev) prev.addEventListener('click', ()=>{ monthOffset--; renderMonthCalendar(); });
   if(next) next.addEventListener('click', ()=>{ monthOffset++; renderMonthCalendar(); });
   if(today) today.addEventListener('click', ()=>{ monthOffset=0; renderMonthCalendar(); });
+
+  const rDateInput = $id('rooster-task-date');
+  if(rDateInput && !rDateInput.value) rDateInput.value = new Date().toISOString().slice(0,10);
+  const rAddBtn = $id('rooster-task-add-btn');
+  if(rAddBtn) rAddBtn.addEventListener('click', ()=>{
+    const input = $id('rooster-task-input'), dateInput = $id('rooster-task-date');
+    const text = input.value.trim(); if(!text){ showToast('Vul een omschrijving in','alert-circle'); return; }
+    const datum = dateInput.value ? new Date(dateInput.value) : new Date();
+    state.extra.push({ id:'custom_'+Date.now(), datum:datum.toISOString(), tekst:text, icon:'star', custom:true, deadline:null });
+    saveState(state); input.value='';
+    renderTodos(); renderFocus(); renderMonthCalendar(); safeRender(renderWeekStrip);
+    showToast('Toegevoegd aan je agenda','plus');
+  });
 }
 
 /* ============ TODOS ============ */
@@ -2085,6 +2259,29 @@ function renderWeekStrip(){
     </div>`;
   }
   setHTML('week-strip', html);
+}
+
+function renderWeekStripHome(){
+  const now = new Date();
+  const todos = allTodos();
+  let html = '';
+  for(let i=0;i<7;i++){
+    const d = addDays(now,i);
+    const dayTasks = todos.filter(t=> sameDay(t.datum, d));
+    const openCount = dayTasks.filter(t=> !t.done).length;
+    const isToday = i===0;
+    const isOverdue = dayTasks.some(t=> !t.done && t.deadline && new Date(t.deadline+'T23:59:59') < now);
+    html += `<div class="shrink-0 w-[84px] rounded-xl border ${isToday?'border-[var(--border-glow-strong)]':(isOverdue?'border-[var(--danger)]/50':'border-white/10')} bg-white/[0.03] p-2.5">
+      <p class="text-[9px] font-mono ${isToday?'text-[var(--purple-soft)]':'text-[var(--text-2)]'} mb-1.5 uppercase truncate">${isToday?'Vandaag':dagNamen[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}</p>
+      ${dayTasks.length===0
+        ? '<p class="text-[10px] text-[var(--text-3)]">—</p>'
+        : `<div class="space-y-1">
+             <p class="text-lg font-display font-semibold ${openCount===0?'text-[var(--text-3)]':(isOverdue?'text-[var(--danger)]':'text-[var(--text-1)]')} leading-none">${openCount}</p>
+             <p class="text-[9px] text-[var(--text-3)] truncate">${openCount===0?'✓ klaar':(dayTasks.length===1?'taak':'taken')}</p>
+           </div>`}
+    </div>`;
+  }
+  setHTML('week-strip-home', html);
 }
 
 /* ============ QUICK NOTES + BOODSCHAPPENLIJST ============ */
@@ -2494,27 +2691,76 @@ function bindCommute(){
   if(refresh) refresh.addEventListener('click', fetchCommute);
 }
 
-/* ============ FUEL TRACKER (Q8 Antwerpen, via fuel_prices.json geschreven door fuel_scraper.py) ============ */
+/* ============ FUEL TRACKER (Q8 Antwerpen) ============
+   Haalt de prijzen rechtstreeks in de browser op van carbu.com (via een gratis lees-proxy,
+   want carbu.com staat geen rechtstreekse cross-origin fetch() toe). Geen GitHub Action of
+   Python-script meer nodig — dit ververst gewoon elke keer de pagina laadt / op interval. */
 const FUEL_META = {
   super95: { label:'Super 95 (E10)', cls:'fuel-super95' },
   super98: { label:'Super 98 (E5)',  cls:'fuel-super98' },
   diesel:  { label:'Diesel (B7)',    cls:'fuel-diesel'  },
 };
+const FUEL_STATION_NAAM = 'Q8 Antwerpen — Schijnpoortweg 18-20, 2060 Antwerpen';
+const FUEL_SOURCE_URL = 'https://carbu.com/belgie/index.php/station/q8/antwerpen/2060/1591';
+const FUEL_PRICE_RE = /(\d+,\d{2,3})\s*€\s*\/?\s*L/i;
+const FUEL_DATE_RE = /\b(\d{2}\/\d{2}\/\d{2})\b/;
+async function scrapeFuelPricesClientSide(){
+  // r.jina.ai is een gratis "reader"-proxy die een webpagina als platte, leesbare tekst
+  // teruggeeft (CORS-vriendelijk, geen key nodig) — daarmee omzeilen we het CORS-probleem.
+  const readerUrl = 'https://r.jina.ai/' + FUEL_SOURCE_URL;
+  const res = await fetch(readerUrl, { cache:'no-store' });
+  if(!res.ok) throw new Error('reader status ' + res.status);
+  const text = await res.text();
+  if(!text || text.length<200) throw new Error('lege pagina ontvangen');
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const allLabels = Object.values(FUEL_META).map(m=>m.label);
+  const fuels = {};
+  for(const [key, meta] of Object.entries(FUEL_META)){
+    const label = meta.label;
+    let found = null;
+    for(let idx=0; idx<lines.length; idx++){
+      if(lines[idx] !== label) continue;
+      let price=null, pageDate=null, unavailable=false, otherLabelHit=false;
+      for(let j=idx+1; j<Math.min(lines.length, idx+14); j++){
+        const l = lines[j];
+        if(allLabels.includes(l) && l!==label){ otherLabelHit=true; break; }
+        if(price===null && !unavailable){
+          const pm = l.match(FUEL_PRICE_RE);
+          if(pm){ price = parseFloat(pm[1].replace(',','.')); continue; }
+          if(l==='-' || /niet beschikbaar/i.test(l)){ unavailable=true; continue; }
+        }
+        if(pageDate===null){ const dm = l.match(FUEL_DATE_RE); if(dm) pageDate = dm[1]; }
+        if((price!==null||unavailable) && (pageDate!==null||unavailable)) break;
+      }
+      if(otherLabelHit) continue;
+      if(price!==null || unavailable){ found = { price, page_date:pageDate, error: unavailable?'prijs niet beschikbaar op carbu.com':null }; break; }
+    }
+    fuels[key] = { label, unit:'€/L', ...(found || { price:null, page_date:null, error:'label niet gevonden op pagina' }) };
+  }
+  const anyPrice = Object.values(fuels).some(f=>f.price!=null);
+  if(!anyPrice) throw new Error('geen enkele prijs herkend op de pagina');
+  return { station: FUEL_STATION_NAAM, source_url: FUEL_SOURCE_URL, last_update: new Date().toISOString(), fuels, live:true };
+}
 async function fetchFuelPrices(){
   setHTML('fuel-grid', Object.values(FUEL_META).map(m=>`
     <div class="fuel-tile ${m.cls}"><p class="fuel-tile-label">${m.label}</p>
       <p class="fuel-tile-value"><i data-lucide="loader" class="w-6 h-6 inline-block text-[var(--text-2)]"></i></p></div>`).join(''));
   safeIcons();
   try{
+    const data = await scrapeFuelPricesClientSide();
+    renderFuel(data);
+    return;
+  } catch(e){ /* val terug op het lokale bestand hieronder */ }
+  try{
     const res = await fetch('fuel_prices.json', { cache:'no-store' });
     if(!res.ok) throw new Error('status ' + res.status);
     const data = await res.json();
     renderFuel(data);
+    setText('fuel-note', 'Kon geen live prijs ophalen — dit zijn de laatst gekende prijzen uit fuel_prices.json.');
   } catch(e){
     setHTML('fuel-grid', `<div class="sm:col-span-3 text-sm text-[var(--text-2)] flex items-center gap-2">
       <i data-lucide="alert-triangle" class="w-4 h-4 text-[var(--warning)]"></i>
-      fuel_prices.json niet gevonden of niet leesbaar. Voer eerst <code class="font-mono text-[var(--cyan-soft)]">fuel_scraper.py</code> uit in dezelfde map als dit bestand.</div>`);
-    setText('fuel-note', 'Tip: als je dit bestand rechtstreeks met dubbelklik opent (file://), kan Chrome lokale fetch()-verzoeken blokkeren. Open het dashboard dan via een kleine lokale server (bv. "python -m http.server" in deze map, dan http://localhost:8000/dashboard.html) — dat is meteen ook de meest robuuste manier om alles samen te laten werken.');
+      Kon de brandstofprijzen niet ophalen (netwerk of de bron is tijdelijk niet bereikbaar). Klik op het ververs-icoontje om opnieuw te proberen.</div>`);
     setText('fuel-updated', '—');
     safeIcons();
     return;
@@ -2534,9 +2780,10 @@ function renderFuel(data){
   }).join(''));
   if(data.last_update){
     const d = new Date(data.last_update);
-    setText('fuel-updated', 'script gedraaid ' + d.toLocaleDateString('nl-BE') + ' ' + d.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'}));
+    const prefix = data.live ? 'live opgehaald ' : 'laatst bekend ';
+    setText('fuel-updated', prefix + d.toLocaleDateString('nl-BE') + ' ' + d.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'}));
   }
-  setText('fuel-note', data.error ? data.error : 'Bron: carbu.com · wordt elke 6 uur automatisch ververst door een GitHub Action.');
+  setText('fuel-note', data.error ? data.error : 'Bron: carbu.com · ververst automatisch bij elke bezoek en om de 5 minuten.');
   safeIcons();
 }
 function bindFuel(){
@@ -2934,7 +3181,49 @@ function bindOveruren(){
   });
 }
 
-function renderLoonPage(){ renderLoonSummary(); renderVerlofSaldo(); renderVerlofList(); renderLoonDay(); renderLoonSettingsForm(); renderOveruren(); }
+/* ============ EXTRA PRESTATIES (8ste dag, vroeger opkomen, langer blijven, call-out) ============ */
+const EXTRAPREST_ICONS = { '8ste dag':'calendar-plus', 'Vroeger opkomen':'sunrise', 'Langer blijven':'moon', 'Call-out':'phone-call' };
+function renderExtraPrestaties(){
+  const items = [...(state.extraPrestaties||[])].sort((a,b)=> new Date(b.datum) - new Date(a.datum));
+  setHTML('extraprest-list', items.length===0 ? '<p class="text-sm text-[var(--text-2)]">Nog geen extra prestaties gelogd.</p>' :
+    items.map(it=>{
+      const shiftTxt = it.shift ? ` · dienst ${it.shift}` : '';
+      const omsTxt = it.omschrijving ? ` — ${it.omschrijving}` : '';
+      return `<div class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="${EXTRAPREST_ICONS[it.type]||'star'}" class="w-4 h-4 text-[var(--purple-soft)]"></i>
+          <div><p class="text-sm font-medium">${it.type}${shiftTxt}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(it.datum+'T00:00:00'))}${omsTxt}</p></div>
+        </div>
+        <button data-extraprest-del="${it.id}" class="text-[var(--text-3)] hover:text-[var(--danger)]"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+      </div>`;
+    }).join(''));
+  safeIcons();
+  document.querySelectorAll('[data-extraprest-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.extraPrestaties = state.extraPrestaties.filter(x=>x.id!==btn.dataset.extraprestDel);
+      saveState(state); renderExtraPrestaties();
+    });
+  });
+}
+function bindExtraPrestaties(){
+  const dateInput = $id('extraprest-datum'); if(dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  const typeEl = $id('extraprest-type'), shiftEl = $id('extraprest-shift');
+  if(typeEl && shiftEl){
+    typeEl.addEventListener('change', ()=>{ shiftEl.classList.toggle('hidden', typeEl.value!=='Call-out'); });
+  }
+  const addBtn = $id('extraprest-add-btn');
+  if(addBtn) addBtn.addEventListener('click', ()=>{
+    const datEl=$id('extraprest-datum'), omEl=$id('extraprest-omschrijving');
+    if(!datEl.value){ showToast('Kies een datum','alert-circle'); return; }
+    const type = typeEl.value;
+    const entry = { id:'xp_'+Date.now(), datum:datEl.value, type, shift: type==='Call-out' ? shiftEl.value : null, omschrijving: omEl.value.trim() };
+    state.extraPrestaties.push(entry);
+    saveState(state); omEl.value='';
+    renderExtraPrestaties();
+    showToast('Extra prestatie toegevoegd','plus');
+  });
+}
+function renderLoonPage(){ renderLoonSummary(); renderVerlofSaldo(); renderVerlofList(); renderLoonDay(); renderLoonSettingsForm(); renderOveruren(); renderExtraPrestaties(); }
 function bindLoonPage(){
   $id('loon-day-picker').addEventListener('change', renderLoonDay);
   $id('loon-settings-toggle').addEventListener('click', ()=> $id('loon-settings-panel').classList.toggle('hidden'));
@@ -2950,6 +3239,7 @@ function bindLoonPage(){
       btn.classList.add('active'); basisPeriod = btn.dataset.period; renderLoonSummary();
     });
   });
+  bindExtraPrestaties();
   $id('loon-settings-save').addEventListener('click', ()=>{
     state.loonConfig.uurloon = parseFloat($id('cfg-uurloon').value) || state.loonConfig.uurloon;
     state.loonConfig.gemiddeldeUrenPerMaand = parseFloat($id('cfg-gemiddelde-uren').value) || state.loonConfig.gemiddeldeUrenPerMaand;
