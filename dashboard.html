@@ -1081,7 +1081,7 @@
     </div>
     <div class="h-px bg-white/10 mb-5"></div>
     <p class="text-sm font-medium mb-1 flex items-center gap-2"><i data-lucide="sparkles" class="w-4 h-4 text-[var(--purple-soft)]"></i> AI-assistent (optioneel)</p>
-    <p class="text-xs text-[var(--text-2)] mb-3 leading-relaxed">Voor échte AI-antwoorden op het dashboard heb je je eigen Anthropic API-key nodig (aan te maken op console.anthropic.com). Deze blijft alleen lokaal op je eigen pc opgeslagen en wordt rechtstreeks vanuit je browser naar Anthropic gestuurd — nergens anders.</p>
+    <p class="text-xs text-[var(--text-2)] mb-3 leading-relaxed">Voor échte AI-antwoorden op het dashboard heb je je eigen Anthropic API-key nodig (aan te maken op console.anthropic.com). Met een key ingesteld kan je bovenaan ook gewoon typen "zet in mijn agenda dat ..." — de AI herkent afspraken/taken/vluchten en zet ze automatisch in je Taken. Zonder key werkt alleen de simpele, vaste zin "zet taak [omschrijving] erin" lokaal, zonder AI. Je key blijft alleen lokaal op je eigen pc opgeslagen en wordt rechtstreeks vanuit je browser naar Anthropic gestuurd — nergens anders.</p>
     <input id="cfg-ai-key" type="password" placeholder="sk-ant-..." class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono mb-2" />
     <input id="cfg-ai-model" type="text" placeholder="claude-haiku-4-5-20251001" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono mb-3" />
     <button id="cfg-ai-save" class="btn-solid text-white text-sm px-4 py-2.5 rounded-full font-medium w-full mb-5">Opslaan</button>
@@ -3407,20 +3407,61 @@ async function askAI(question){
   safeIcons();
   const key = state.aiConfig.apiKey;
   if(!key){
-    answerEl.innerHTML = 'Geen API-key ingesteld — voeg je Anthropic API-key toe via het instellingen-tandwiel om hier echte AI-antwoorden te krijgen. (Je vraag was: "' + question.replace(/</g,'&lt;') + '")';
+    answerEl.innerHTML = 'Geen API-key ingesteld — voeg je Anthropic API-key toe via het instellingen-tandwiel om hier echte AI-antwoorden te krijgen, en om afspraken/taken automatisch in je agenda te laten zetten. (Je vraag was: "' + question.replace(/</g,'&lt;') + '")';
     return;
   }
+  const todayISO = new Date().toISOString().slice(0,10);
+  const systemPrompt = `Je bent de assistent in een persoonlijk dashboard (Nederlandstalig, Belgische context). Vandaag is ${todayISO}.
+Antwoord ALTIJD met exact één geldig JSON-object, niets ervoor of erna (geen markdown, geen uitleg buiten het JSON-object), in één van deze drie vormen:
+1) De gebruiker vraagt om iets in de agenda/taken te zetten (afspraken, vluchten, evenementen, herinneringen, deadlines, ...):
+   {"action":"add_tasks","tasks":[{"tekst":"korte duidelijke omschrijving","datum":"YYYY-MM-DD","tijd":"HH:MM of null"}],"reply":"korte bevestiging in het Nederlands"}
+   Maak voor elk afzonderlijk moment (bv. heenvlucht en terugvlucht apart) een eigen taak-object. Neem concrete details (tijden, plaatsen) op in "tekst". Gebruik het huidige jaar als er geen jaar vermeld is.
+2) Een essentieel gegeven ontbreekt of is dubbelzinnig (bv. geen datum voor de terugvlucht):
+   {"action":"clarify","reply":"korte, specifieke verduidelijkingsvraag in het Nederlands"}
+3) Alle andere vragen (geen agenda-verzoek):
+   {"action":"answer","reply":"normaal antwoord in het Nederlands"}`;
   try{
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{ 'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({ model: state.aiConfig.model || 'claude-haiku-4-5-20251001', max_tokens: 512, messages:[{ role:'user', content: question }] })
+      body: JSON.stringify({ model: state.aiConfig.model || 'claude-haiku-4-5-20251001', max_tokens: 1024, system: systemPrompt, messages:[{ role:'user', content: question }] })
     });
     const data = await res.json();
     if(data.error){ answerEl.textContent = 'Fout van Anthropic: ' + data.error.message; return; }
-    const text = (data.content && data.content[0] && data.content[0].text) || '(geen antwoord ontvangen)';
-    answerEl.textContent = text;
-    speak(text);
+    const raw = (data.content && data.content[0] && data.content[0].text) || '';
+    let parsed = null;
+    try{ parsed = JSON.parse(raw); }
+    catch(e){
+      const match = raw.match(/\{[\s\S]*\}/);
+      if(match){ try{ parsed = JSON.parse(match[0]); } catch(e2){ /* geef op, val terug op ruwe tekst */ } }
+    }
+    if(parsed && parsed.action==='add_tasks' && Array.isArray(parsed.tasks) && parsed.tasks.length>0){
+      const added = [];
+      parsed.tasks.forEach(t=>{
+        if(!t || !t.tekst || !t.datum) return;
+        const datum = new Date(t.datum+'T00:00:00');
+        if(isNaN(datum.getTime())) return;
+        state.extra.push({ id:'custom_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), datum:datum.toISOString(), tekst:t.tekst, tijd:t.tijd||null, icon:'calendar-plus', custom:true, deadline:null });
+        added.push(t.tekst);
+      });
+      if(added.length>0){
+        saveState(state); renderTodos(); renderFocus(); renderMonthCalendar(); safeRender(renderWeekStrip);
+        const replyTxt = parsed.reply || ('Toegevoegd: ' + added.join(', '));
+        answerEl.innerHTML = '✓ ' + replyTxt.replace(/</g,'&lt;') + '<br><span class="text-xs opacity-70">' + added.length + ' taak' + (added.length>1?'en':'') + ' toegevoegd aan je agenda.</span>';
+        speak(replyTxt);
+      } else {
+        answerEl.textContent = parsed.reply || 'Kon geen geldige taken herkennen in het antwoord.';
+      }
+      return;
+    }
+    if(parsed && (parsed.action==='clarify' || parsed.action==='answer') && parsed.reply){
+      answerEl.textContent = parsed.reply;
+      speak(parsed.reply);
+      return;
+    }
+    // Model volgde het JSON-formaat niet op — toon ruwe tekst als veilige fallback.
+    answerEl.textContent = raw || '(geen antwoord ontvangen)';
+    if(raw) speak(raw);
   } catch(e){
     answerEl.textContent = 'Kon geen verbinding maken met de AI (netwerk/CORS). Controleer je internetverbinding en API-key.';
   }
