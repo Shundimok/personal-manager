@@ -836,7 +836,8 @@
             <option value="Langer blijven">Langer blijven</option>
             <option value="Call-out">Call-out</option>
           </select>
-          <select id="extraprest-shift" class="hidden bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
+          <select id="extraprest-shift" class="bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
+            <option value="">Dienst (optioneel)</option>
             <option value="A">A — Vroege dienst</option>
             <option value="B">B — Late dienst</option>
             <option value="C">C — Nachtdienst</option>
@@ -875,13 +876,15 @@
           <button id="loon-settings-toggle" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1"><i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i> Aanpassen</button>
         </div>
         <div id="loon-settings-panel" class="hidden">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
             <div><p class="text-xs text-[var(--text-2)] mb-2">Bruto uurloon (9HSA)</p>
               <input id="cfg-uurloon" type="number" step="0.0001" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" /></div>
             <div><p class="text-xs text-[var(--text-2)] mb-2">Gemiddelde contractuele uren/maand</p>
               <input id="cfg-gemiddelde-uren" type="number" step="0.0001" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" /></div>
             <div><p class="text-xs text-[var(--text-2)] mb-2">Gemeentelijke opcentiemen %</p>
               <input id="cfg-nettopct" type="number" step="0.5" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" /></div>
+            <div><p class="text-xs text-[var(--text-2)] mb-2">Belasting-kalibratie % <span class="text-[var(--text-3)]">(afgestemd op loonbrief)</span></p>
+              <input id="cfg-belasting-kalibratie" type="number" step="0.5" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" /></div>
           </div>
           <p class="text-xs text-[var(--text-2)] mb-2">Shiftpremie % per categorie</p>
           <div id="cfg-premies-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4"></div>
@@ -889,7 +892,7 @@
           <div id="cfg-verlofpct-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-2"></div>
           <button id="loon-settings-save" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium mt-3">Opslaan</button>
         </div>
-        <p class="text-xs text-[var(--text-3)] mt-4">Shiftpremie = premie% × 8u × uurloon. KF geeft dezelfde premie als de dag waarop je die inplant (100%). PO behoudt 23,39% van die premie. IU en JV geven geen shiftpremie. GK behoudt 100%. Nettoschatting = RSZ (13,07%) + progressieve belastingschijven (25/40/45/50%, belastingvrije som €11.180) + gemeentelijke opcentiemen — dus wél rekening houdend met hogere schijven bij hoger loon, maar nog steeds een benadering zonder je persoonlijke situatie (kinderen ten laste, andere inkomsten, ...). Vereenvoudiging t.o.v. je echte loonbrief (die ook reistijd, opkomst-reserve, en het volledige herberekeningsmechanisme bevat) — bedoeld als inzicht, niet als volledige loonberekening.</p>
+        <p class="text-xs text-[var(--text-3)] mt-4">Shiftpremie = premie% × 8u × uurloon. KF geeft dezelfde premie als de dag waarop je die inplant (100%). PO behoudt 23,39% van die premie. IU en JV geven geen shiftpremie. GK behoudt 100%. Nettoschatting = RSZ (13,07%) + progressieve belastingschijven (25/40/45/50%, belastingvrije som €11.180) + gemeentelijke opcentiemen, plus een <strong class="text-[var(--text-1)]">belasting-kalibratie%</strong> bovenop — want de officiële bedrijfsvoorheffing-barema's die je werkgever gebruikt zijn geen exacte kopie van de eind-belastingschijven en houden dit tool structureel te laag. Deze kalibratie is nu afgesteld op je echte loonbrief van juli 2026 (netto €4007,86). Krijg je een nieuwe loonbrief met een netto dat hier duidelijk van afwijkt? Pas dan gerust dit percentage aan tot het weer klopt — dat is betrouwbaarder dan dat ik de exacte Belgische bedrijfsvoorheffing-tabellen blind probeer na te bootsen. Nog steeds een benadering zonder je volledige persoonlijke situatie (kinderen ten laste, andere inkomsten, ...) en zonder reistijd/opkomst-reserve-vergoedingen — bedoeld als inzicht, geen officiële loonberekening.</p>
       </div>
     </section>
 
@@ -1159,11 +1162,17 @@
     <p class="text-xs text-[var(--text-2)] mb-3 leading-relaxed">Vul dit in op élk toestel/browser met dezelfde 2 waarden, en je taken, recepten, uitgaven enz. blijven overal gelijk. Gratis, via je eigen Firebase-project (console.firebase.google.com → project aanmaken → "Firestore Database" → "Create database" → kies "Start in test mode"). Kopieer dan je Project ID (bij ⚙️ Project settings). Verzin zelf een unieke, moeilijk te raden Sync-ID (bv. een lange willekeurige code) — iedereen die deze 2 waarden kent kan bij je data, dus behandel ze als een wachtwoord.</p>
     <input id="cfg-sync-projectid" type="text" placeholder="Firebase Project ID" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono mb-2" />
     <input id="cfg-sync-id" type="text" placeholder="Zelfgekozen Sync-ID (bv. shaun-command-deck-x7k2)" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono mb-2" />
-    <div class="flex gap-2">
+    <div class="flex gap-2 mb-2">
       <button id="cfg-sync-save" class="btn-solid text-white text-sm px-4 py-2.5 rounded-full font-medium flex-1">Opslaan &amp; syncen</button>
       <button id="cfg-sync-now" class="btn-ghost text-sm px-4 py-2.5 rounded-full">Sync nu</button>
     </div>
-    <p id="sync-status" class="text-[11px] text-[var(--text-3)] mt-2">Nog niet ingesteld.</p>
+    <p id="sync-status" class="text-[11px] text-[var(--text-3)] mt-2 mb-3">Nog niet ingesteld.</p>
+    <p class="text-[11px] text-[var(--text-3)] mb-2">Er zit nu een veiligheidsgrendel op: als dit toestel duidelijk minder data lijkt te hebben dan de cloud, wordt er nooit automatisch overschreven. Onderstaande knoppen zijn voor als je zelf handmatig wil ingrijpen:</p>
+    <div class="flex flex-wrap gap-2">
+      <button id="cfg-sync-force-pull" class="btn-ghost text-xs px-3 py-2 rounded-full flex items-center gap-1"><i data-lucide="cloud-download" class="w-3.5 h-3.5"></i> Cloud-data ophalen (overschrijft hier)</button>
+      <button id="cfg-sync-force-push" class="btn-ghost text-xs px-3 py-2 rounded-full flex items-center gap-1"><i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Forceer push (dit toestel is juist)</button>
+      <button id="cfg-sync-restore-backup" class="btn-ghost text-xs px-3 py-2 rounded-full flex items-center gap-1"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Herstel laatste lokale backup</button>
+    </div>
   </div>
 </div>
 
@@ -1351,6 +1360,14 @@ if(state.loonConfigVersion < 6){
   if(state.loonConfig.gemeenteOpcentiemen === undefined) state.loonConfig.gemeenteOpcentiemen = 7;
   delete state.loonConfig.nettoPct;
   state.loonConfigVersion = 6;
+}
+// v7: netto-model gaf structureel te hoge bedragen t.o.v. de echte loonbrief (bv. juli 2026: model zei
+// ±4462, echte loonbrief zei 4007,86). De officiële bedrijfsvoorheffing-barema's zijn geen exacte kopie
+// van de eind-belastingschijven — in plaats van die barema's blind te simuleren, kalibreren we een
+// correctiepercentage bovenop de berekende belasting, afgestemd op deze échte loonbrief.
+if(!state.loonConfigVersion || state.loonConfigVersion < 7){
+  state.loonConfig.belastingKalibratiePct = 16;
+  state.loonConfigVersion = 7;
 }
 if(!state.verlofDagen) state.verlofDagen = [];
 if(!state.verlofDagenVersion || state.verlofDagenVersion < 2){
@@ -1870,7 +1887,7 @@ function bindExpenseForm(){
     state.expenses.push(entry);
     const ok = saveState(state);
     bedragEl.value=''; omEl.value='';
-    renderExpenseOverview();
+    renderExpenseOverview(); renderBudgetProgress();
     showToast(ok ? 'Uitgave opgeslagen ✓' : 'Opslaan mislukt!', ok?'receipt':'alert-triangle');
   });
   bindExpenseCsvImport();
@@ -1961,7 +1978,7 @@ function bindExpenseCsvImport(){
         toegevoegd++;
       });
       saveState(state);
-      renderExpenseOverview();
+      renderExpenseOverview(); renderBudgetProgress();
       showToast(toegevoegd+' uitgave(n) geïmporteerd'+(overgeslagen?', '+overgeslagen+' dubbels overgeslagen':''), 'upload');
     } catch(e){
       showToast('Kon CSV niet verwerken: '+e.message, 'alert-triangle');
@@ -2529,14 +2546,39 @@ function firestoreDocUrl(){
   const { projectId, syncId } = state.syncConfig;
   return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/commanddeck/${encodeURIComponent(syncId)}`;
 }
+/* Grove maat voor "hoeveel echte data zit hierin" — gebruikt als veiligheidsgrendel zodat een vers/leeg
+   toestel (bv. net toegevoegd aan het thuisscherm, met een eigen geïsoleerde localStorage) nooit per
+   ongeluk rijkere cloud-data overschrijft alleen omdat het toevallig een latere lastModified-stempel
+   heeft (dat gaf hiervoor al eens echt dataverlies: vintage-items, recepten en API-keys verdwenen). */
+function contentScore(s){
+  if(!s || typeof s!=='object') return -1;
+  const arrLen = k => Array.isArray(s[k]) ? s[k].length : 0;
+  let score = ['vintageItems','recipes','expenses','extra','notes','sales','groceries','extraPrestaties','verlofDagen','overuren','customBills']
+    .reduce((sum,k)=> sum + arrLen(k), 0);
+  if(s.aiConfig && s.aiConfig.apiKey) score += 3;
+  if(s.commuteConfig && s.commuteConfig.tomtomKey) score += 3;
+  return score;
+}
 function scheduleCloudPush(){
   if(!syncActief()) return;
   clearTimeout(cloudPushTimer);
-  cloudPushTimer = setTimeout(pushStateToCloud, 2000);
+  cloudPushTimer = setTimeout(()=>pushStateToCloud(false), 2000);
 }
-async function pushStateToCloud(){
+/* force=true negeert de inhoud-grendel (bv. via de "Forceer push"-knop, voor als je bewust lokaal
+   dingen verwijderd hebt en zeker weet dat dit toestel de juiste, meest recente data heeft). */
+async function pushStateToCloud(force){
   if(!syncActief() || cloudSyncBusy) return;
   try{
+    if(!force){
+      const cloud = await pullStateFromCloud();
+      if(cloud){
+        const localScore = contentScore(state), cloudScore = contentScore(cloud.parsed);
+        if(cloudScore > 0 && localScore < cloudScore * 0.6){
+          setText('sync-status', `⚠️ Push geblokkeerd: dit toestel lijkt minder data te hebben (${localScore}) dan de cloud (${cloudScore}). Klik "Cloud-data ophalen" om de echte data hier te laden, of "Forceer push" als dit toestel echt gelijk heeft.`);
+          return;
+        }
+      }
+    }
     const res = await fetch(firestoreDocUrl() + '?updateMask.fieldPaths=json&updateMask.fieldPaths=lastModified', {
       method:'PATCH',
       headers:{ 'content-type':'application/json' },
@@ -2558,22 +2600,48 @@ async function pullStateFromCloud(){
     return { parsed: JSON.parse(json), lastModified };
   } catch(e){ setText('sync-status', 'Kon cloud niet ophalen: ' + e.message); return null; }
 }
-/* Bij opstart: vergelijk lokale en cloud-versie, gebruik de nieuwste (last-write-wins). */
+/* Voor élke keer dat lokale data vervangen wordt door cloud-data: bewaar eerst een lokale
+   veiligheidskopie, zodat je via "Herstel laatste lokale backup" nooit iets écht kwijt kan zijn. */
+function snapshotLocalBeforeOverwrite(){
+  try{ localStorage.setItem(STORE_KEY + '_presync_backup', JSON.stringify(state)); } catch(e){}
+}
+function restoreLocalPresyncBackup(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY + '_presync_backup');
+    if(!raw){ showToast('Geen lokale back-up gevonden','alert-circle'); return; }
+    state = JSON.parse(raw);
+    localStorage.setItem(STORE_KEY, raw);
+    renderAll();
+    showToast('Lokale back-up van vóór de laatste sync hersteld','check-circle-2');
+  } catch(e){ showToast('Herstellen mislukt: '+e.message,'alert-triangle'); }
+}
+/* Bij opstart: vergelijk lokale en cloud-versie, gebruik de nieuwste (last-write-wins) —
+   MAAR met de contentScore-grendel: als "lokaal nieuwer" zou betekenen dat we een duidelijk
+   rijkere cloud-versie overschrijven, vertrouwen we de cloud i.p.v. de timestamp. */
 async function initCloudSync(){
   if(!syncActief()){ setText('sync-status', 'Nog niet ingesteld.'); return; }
   cloudSyncBusy = true;
   setText('sync-status', 'Synchroniseren…');
   const cloud = await pullStateFromCloud();
-  if(cloud && cloud.lastModified > (state.lastModified||0)){
-    state = cloud.parsed;
-    localStorage.setItem(STORE_KEY, JSON.stringify(state));
-    renderAll();
-    setText('sync-status', 'Nieuwere data van cloud opgehaald (' + new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'}) + ').');
-  } else {
-    setText('sync-status', 'Lokale versie is actueel — cloud bijgewerkt.');
+  if(cloud){
+    const localScore = contentScore(state), cloudScore = contentScore(cloud.parsed);
+    const cloudIsNewer = cloud.lastModified > (state.lastModified||0);
+    const localLooksEmptier = cloudScore > 0 && localScore < cloudScore * 0.6;
+    if(cloudIsNewer || localLooksEmptier){
+      snapshotLocalBeforeOverwrite();
+      state = cloud.parsed;
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      renderAll();
+      setText('sync-status', localLooksEmptier && !cloudIsNewer
+        ? `Lokale data zag er onvolledig uit (${localScore} vs ${cloudScore} items in de cloud) — cloud-versie gebruikt ter veiligheid. Vorige lokale data staat in de back-up (zie "Herstel laatste lokale backup").`
+        : ('Nieuwere data van cloud opgehaald (' + new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'}) + ').'));
+      cloudSyncBusy = false;
+      return;
+    }
   }
+  setText('sync-status', 'Lokale versie is actueel — cloud bijgewerkt.');
   cloudSyncBusy = false;
-  pushStateToCloud();
+  pushStateToCloud(false);
 }
 function bindSync(){
   $id('cfg-sync-projectid').value = state.syncConfig.projectId || '';
@@ -2590,6 +2658,24 @@ function bindSync(){
     if(!syncActief()){ showToast('Vul eerst Project ID en Sync-ID in','alert-circle'); return; }
     initCloudSync();
   });
+  const forcePushBtn = $id('cfg-sync-force-push');
+  if(forcePushBtn) forcePushBtn.addEventListener('click', ()=>{
+    if(!syncActief()){ showToast('Vul eerst Project ID en Sync-ID in','alert-circle'); return; }
+    pushStateToCloud(true); showToast('Dit toestel geforceerd naar de cloud gepusht','cloud');
+  });
+  const forcePullBtn = $id('cfg-sync-force-pull');
+  if(forcePullBtn) forcePullBtn.addEventListener('click', async ()=>{
+    if(!syncActief()){ showToast('Vul eerst Project ID en Sync-ID in','alert-circle'); return; }
+    const cloud = await pullStateFromCloud();
+    if(!cloud){ showToast('Geen cloud-data gevonden','alert-circle'); return; }
+    snapshotLocalBeforeOverwrite();
+    state = cloud.parsed;
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    renderAll();
+    showToast('Cloud-data hier geladen (lokale versie ervoor is bewaard als back-up)','check-circle-2');
+  });
+  const restoreBtn = $id('cfg-sync-restore-backup');
+  if(restoreBtn) restoreBtn.addEventListener('click', restoreLocalPresyncBackup);
 }
 
 /* ============ WOON-WERKVERKEER (TomTom, optionele eigen key) ============ */
@@ -2704,14 +2790,41 @@ const FUEL_STATION_NAAM = 'Q8 Antwerpen — Schijnpoortweg 18-20, 2060 Antwerpen
 const FUEL_SOURCE_URL = 'https://carbu.com/belgie/index.php/station/q8/antwerpen/2060/1591';
 const FUEL_PRICE_RE = /(\d+,\d{2,3})\s*€\s*\/?\s*L/i;
 const FUEL_DATE_RE = /\b(\d{2}\/\d{2}\/\d{2})\b/;
+// Meerdere gratis CORS/reader-proxy's op rij proberen — als er eentje geblokkeerd/traag/leeg is,
+// proberen we gewoon de volgende. We loggen elke poging in fuelDebugLog zodat je in Instellingen
+// of via de console kan zien welke exact faalde en waarom, in plaats van blind terug te vallen.
+const FUEL_READER_PROXIES = [
+  url => 'https://r.jina.ai/' + url,
+  url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+  url => 'https://corsproxy.io/?url=' + encodeURIComponent(url),
+];
+let fuelDebugLog = [];
+async function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{ return await fetch(url, { cache:'no-store', signal: ctrl.signal }); }
+  finally{ clearTimeout(t); }
+}
 async function scrapeFuelPricesClientSide(){
-  // r.jina.ai is een gratis "reader"-proxy die een webpagina als platte, leesbare tekst
-  // teruggeeft (CORS-vriendelijk, geen key nodig) — daarmee omzeilen we het CORS-probleem.
-  const readerUrl = 'https://r.jina.ai/' + FUEL_SOURCE_URL;
-  const res = await fetch(readerUrl, { cache:'no-store' });
-  if(!res.ok) throw new Error('reader status ' + res.status);
-  const text = await res.text();
-  if(!text || text.length<200) throw new Error('lege pagina ontvangen');
+  fuelDebugLog = [];
+  let text = null, lastErr = null;
+  for(const buildUrl of FUEL_READER_PROXIES){
+    const readerUrl = buildUrl(FUEL_SOURCE_URL);
+    try{
+      const res = await fetchWithTimeout(readerUrl, 12000);
+      if(!res.ok){ throw new Error('HTTP ' + res.status); }
+      const t = await res.text();
+      if(!t || t.length<200) throw new Error('lege/te korte respons (' + (t?t.length:0) + ' tekens)');
+      text = t;
+      fuelDebugLog.push({ proxy: readerUrl, ok:true });
+      break;
+    } catch(e){
+      const msg = (e && e.name==='AbortError') ? 'time-out (>12s)' : (e && e.message || String(e));
+      fuelDebugLog.push({ proxy: readerUrl, ok:false, error: msg });
+      lastErr = msg;
+    }
+  }
+  if(!text) throw new Error('alle proxy\'s faalden — laatste fout: ' + lastErr);
   const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
   const allLabels = Object.values(FUEL_META).map(m=>m.label);
   const fuels = {};
@@ -2746,17 +2859,19 @@ async function fetchFuelPrices(){
     <div class="fuel-tile ${m.cls}"><p class="fuel-tile-label">${m.label}</p>
       <p class="fuel-tile-value"><i data-lucide="loader" class="w-6 h-6 inline-block text-[var(--text-2)]"></i></p></div>`).join(''));
   safeIcons();
+  let liveErr = null;
   try{
     const data = await scrapeFuelPricesClientSide();
     renderFuel(data);
     return;
-  } catch(e){ /* val terug op het lokale bestand hieronder */ }
+  } catch(e){ liveErr = e.message || String(e); }
   try{
     const res = await fetch('fuel_prices.json', { cache:'no-store' });
     if(!res.ok) throw new Error('status ' + res.status);
     const data = await res.json();
     renderFuel(data);
-    setText('fuel-note', 'Kon geen live prijs ophalen — dit zijn de laatst gekende prijzen uit fuel_prices.json.');
+    const detail = fuelDebugLog.map(l=> l.ok ? (l.proxy+': ok') : (l.proxy+': '+l.error)).join(' · ');
+    setText('fuel-note', 'Kon geen live prijs ophalen (' + (liveErr||'onbekende fout') + ') — dit zijn de laatst gekende prijzen uit fuel_prices.json.' + (detail?(' [debug: '+detail+']'):''));
   } catch(e){
     setHTML('fuel-grid', `<div class="sm:col-span-3 text-sm text-[var(--text-2)] flex items-center gap-2">
       <i data-lucide="alert-triangle" class="w-4 h-4 text-[var(--warning)]"></i>
@@ -2962,7 +3077,8 @@ function nettoVanBrutoMaand(brutoMaand){
   const belastbaarJaar = brutoJaar - rszJaar;
   const federaleBelastingJaar = belastingOpJaarinkomen(belastbaarJaar);
   const opcentiemenPct = state.loonConfig.gemeenteOpcentiemen ?? 7;
-  const totaleBelastingJaar = federaleBelastingJaar * (1 + opcentiemenPct/100);
+  const kalibratiePct = state.loonConfig.belastingKalibratiePct ?? 16;
+  const totaleBelastingJaar = federaleBelastingJaar * (1 + opcentiemenPct/100) * (1 + kalibratiePct/100);
   const nettoJaar = brutoJaar - rszJaar - totaleBelastingJaar;
   return nettoJaar/12;
 }
@@ -3101,6 +3217,7 @@ function renderLoonSettingsForm(){
   $id('cfg-uurloon').value = state.loonConfig.uurloon;
   $id('cfg-gemiddelde-uren').value = state.loonConfig.gemiddeldeUrenPerMaand.toFixed(4);
   $id('cfg-nettopct').value = state.loonConfig.gemeenteOpcentiemen;
+  $id('cfg-belasting-kalibratie').value = state.loonConfig.belastingKalibratiePct ?? 16;
   const premieLabels = { vl_weekday:'V/L ma-vr', vl_zaterdag:'V/L zaterdag', vl_zondag:'V/L zondag', nacht_weekday:'Nacht ma-vr', nacht_zaterdag:'Nacht zaterdag', nacht_zondag:'Nacht zondag', feestdag_vl:'Feestdag V/L', feestdag_nacht:'Feestdag Nacht' };
   setHTML('cfg-premies-grid', Object.entries(premieLabels).map(([key,label])=>`
     <div><label class="text-[10px] text-[var(--text-3)] block mb-1">${label}</label>
@@ -3208,15 +3325,12 @@ function renderExtraPrestaties(){
 function bindExtraPrestaties(){
   const dateInput = $id('extraprest-datum'); if(dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
   const typeEl = $id('extraprest-type'), shiftEl = $id('extraprest-shift');
-  if(typeEl && shiftEl){
-    typeEl.addEventListener('change', ()=>{ shiftEl.classList.toggle('hidden', typeEl.value!=='Call-out'); });
-  }
   const addBtn = $id('extraprest-add-btn');
   if(addBtn) addBtn.addEventListener('click', ()=>{
     const datEl=$id('extraprest-datum'), omEl=$id('extraprest-omschrijving');
     if(!datEl.value){ showToast('Kies een datum','alert-circle'); return; }
     const type = typeEl.value;
-    const entry = { id:'xp_'+Date.now(), datum:datEl.value, type, shift: type==='Call-out' ? shiftEl.value : null, omschrijving: omEl.value.trim() };
+    const entry = { id:'xp_'+Date.now(), datum:datEl.value, type, shift: shiftEl.value || null, omschrijving: omEl.value.trim() };
     state.extraPrestaties.push(entry);
     saveState(state); omEl.value='';
     renderExtraPrestaties();
@@ -3244,6 +3358,8 @@ function bindLoonPage(){
     state.loonConfig.uurloon = parseFloat($id('cfg-uurloon').value) || state.loonConfig.uurloon;
     state.loonConfig.gemiddeldeUrenPerMaand = parseFloat($id('cfg-gemiddelde-uren').value) || state.loonConfig.gemiddeldeUrenPerMaand;
     state.loonConfig.gemeenteOpcentiemen = parseFloat($id('cfg-nettopct').value) || state.loonConfig.gemeenteOpcentiemen;
+    state.loonConfig.belastingKalibratiePct = parseFloat($id('cfg-belasting-kalibratie').value);
+    if(isNaN(state.loonConfig.belastingKalibratiePct)) state.loonConfig.belastingKalibratiePct = 16;
     document.querySelectorAll('[data-cfg-premie]').forEach(inp=>{ state.loonConfig.premies[inp.dataset.cfgPremie] = parseFloat(inp.value)||0; });
     document.querySelectorAll('[data-cfg-verlofpct]').forEach(inp=>{ state.loonConfig.verlofPct[inp.dataset.cfgVerlofpct] = parseFloat(inp.value)||0; });
     saveState(state); renderLoonPage(); showToast('Instellingen opgeslagen','check-circle-2');
