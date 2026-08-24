@@ -1391,6 +1391,15 @@ if(!state.verlofDagenVersion || state.verlofDagenVersion < 2){
 if(!state.aiConfig) state.aiConfig = { apiKey:'', model:'claude-haiku-4-5-20251001' };
 if(!state.commuteConfig) state.commuteConfig = { tomtomKey:'', coords:null };
 if(!state.syncConfig) state.syncConfig = { projectId:'', syncId:'' };
+// v1: nieuw "linked"-veld — voorkomt dat een net-geconfigureerd toestel automatisch (blind) naar de
+// cloud pusht vóór het ooit de échte cloud-data heeft gezien/bevestigd (gaf eerder al 2x dataverlies).
+// Toestellen die vóór deze fix al sync hadden ingesteld, behandelen we als reeds gekoppeld (geen
+// gedragswijziging voor bestaande, werkende koppelingen) — enkel NIEUW ingevulde/gewijzigde
+// projectId+syncId-combinaties starten voortaan als "nog niet gekoppeld".
+if(!state.syncConfigVersion){
+  state.syncConfig.linked = !!(state.syncConfig.projectId && state.syncConfig.syncId);
+  state.syncConfigVersion = 1;
+}
 if(state.lastModified === undefined) state.lastModified = 0;
 if(!state.overuren) state.overuren = [];
 if(!state.extraPrestaties) state.extraPrestaties = [];
@@ -2565,9 +2574,18 @@ function scheduleCloudPush(){
   cloudPushTimer = setTimeout(()=>pushStateToCloud(false), 2000);
 }
 /* force=true negeert de inhoud-grendel (bv. via de "Forceer push"-knop, voor als je bewust lokaal
-   dingen verwijderd hebt en zeker weet dat dit toestel de juiste, meest recente data heeft). */
+   dingen verwijderd hebt en zeker weet dat dit toestel de juiste, meest recente data heeft).
+   BELANGRIJKE GRENDEL: een toestel dat nog nooit expliciet gekoppeld is (state.syncConfig.linked)
+   mag NOOIT automatisch pushen — enkel handmatig via "Forceer push" of nadat het minstens 1x veilig
+   gekoppeld is via "Cloud-data ophalen"/"Sync nu". Dit voorkomt dat een net-geconfigureerd toestel
+   (met eigen, deels ingebakken standaardwaarden zoals de vintage-baseline) straks de cloud
+   overschrijft vóór het ooit de échte data heeft gezien — dat gaf al 2x echt dataverlies. */
 async function pushStateToCloud(force){
   if(!syncActief() || cloudSyncBusy) return;
+  if(!force && !state.syncConfig.linked){
+    setText('sync-status', '⏸ Automatische push overgeslagen: dit toestel is nog niet gekoppeld. Kies eerst expliciet "Cloud-data ophalen" (als de cloud de juiste data heeft) of "Forceer push" (als dit toestel de juiste data heeft) in Instellingen.');
+    return;
+  }
   try{
     if(!force){
       const cloud = await pullStateFromCloud();
@@ -2584,6 +2602,7 @@ async function pushStateToCloud(force){
       headers:{ 'content-type':'application/json' },
       body: JSON.stringify({ fields:{ json:{ stringValue: JSON.stringify(state) }, lastModified:{ integerValue: String(state.lastModified||Date.now()) } } })
     });
+    if(res.ok){ state.syncConfig.linked = true; try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
     setText('sync-status', res.ok ? ('Laatst gesynct: ' + new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})) : ('Sync-fout: status '+res.status));
   } catch(e){ setText('sync-status', 'Sync-fout: ' + e.message); }
 }
@@ -2617,7 +2636,8 @@ function restoreLocalPresyncBackup(){
 }
 /* Bij opstart: vergelijk lokale en cloud-versie, gebruik de nieuwste (last-write-wins) —
    MAAR met de contentScore-grendel: als "lokaal nieuwer" zou betekenen dat we een duidelijk
-   rijkere cloud-versie overschrijven, vertrouwen we de cloud i.p.v. de timestamp. */
+   rijkere cloud-versie overschrijven, vertrouwen we de cloud i.p.v. de timestamp. Een toestel dat
+   nog niet "linked" is, mag bovendien nooit automatisch pushen (zie pushStateToCloud). */
 async function initCloudSync(){
   if(!syncActief()){ setText('sync-status', 'Nog niet ingesteld.'); return; }
   cloudSyncBusy = true;
@@ -2627,9 +2647,11 @@ async function initCloudSync(){
     const localScore = contentScore(state), cloudScore = contentScore(cloud.parsed);
     const cloudIsNewer = cloud.lastModified > (state.lastModified||0);
     const localLooksEmptier = cloudScore > 0 && localScore < cloudScore * 0.6;
-    if(cloudIsNewer || localLooksEmptier){
+    const notYetLinked = !state.syncConfig.linked;
+    if(cloudIsNewer || localLooksEmptier || notYetLinked){
       snapshotLocalBeforeOverwrite();
       state = cloud.parsed;
+      state.syncConfig.linked = true;
       localStorage.setItem(STORE_KEY, JSON.stringify(state));
       renderAll();
       setText('sync-status', localLooksEmptier && !cloudIsNewer
@@ -2638,6 +2660,10 @@ async function initCloudSync(){
       cloudSyncBusy = false;
       return;
     }
+  } else if(!state.syncConfig.linked){
+    // Geen cloud-document gevonden (404) én dit toestel was nog nooit gekoppeld: dit is dus echt de
+    // allereerste keer dat sync ergens wordt opgezet — veilig om dit toestel als bron te gebruiken.
+    state.syncConfig.linked = true;
   }
   setText('sync-status', 'Lokale versie is actueel — cloud bijgewerkt.');
   cloudSyncBusy = false;
@@ -2646,12 +2672,17 @@ async function initCloudSync(){
 function bindSync(){
   $id('cfg-sync-projectid').value = state.syncConfig.projectId || '';
   $id('cfg-sync-id').value = state.syncConfig.syncId || '';
-  if(syncActief()) setText('sync-status', 'Ingesteld — synct automatisch.');
+  if(syncActief()) setText('sync-status', state.syncConfig.linked ? 'Ingesteld — synct automatisch.' : 'Ingesteld, maar nog niet gekoppeld — kies hieronder expliciet "Cloud-data ophalen" of "Forceer push".');
   $id('cfg-sync-save').addEventListener('click', ()=>{
-    state.syncConfig.projectId = $id('cfg-sync-projectid').value.trim();
-    state.syncConfig.syncId = $id('cfg-sync-id').value.trim();
+    const newProjectId = $id('cfg-sync-projectid').value.trim();
+    const newSyncId = $id('cfg-sync-id').value.trim();
+    // Als project/sync-ID wijzigt (of dit de eerste keer is), reset de link-status: we willen NOOIT
+    // automatisch pushen naar een (nieuw) doel zonder dat de gebruiker expliciet kiest welke kant wint.
+    if(newProjectId !== state.syncConfig.projectId || newSyncId !== state.syncConfig.syncId) state.syncConfig.linked = false;
+    state.syncConfig.projectId = newProjectId;
+    state.syncConfig.syncId = newSyncId;
     saveState(state);
-    if(syncActief()){ showToast('Sync-instellingen opgeslagen','cloud'); initCloudSync(); }
+    if(syncActief()) showToast('Opgeslagen. Kies nu hieronder "Cloud-data ophalen" of "Forceer push".','cloud');
     else showToast('Sync-instellingen gewist','cloud');
   });
   $id('cfg-sync-now').addEventListener('click', ()=>{
@@ -2661,6 +2692,7 @@ function bindSync(){
   const forcePushBtn = $id('cfg-sync-force-push');
   if(forcePushBtn) forcePushBtn.addEventListener('click', ()=>{
     if(!syncActief()){ showToast('Vul eerst Project ID en Sync-ID in','alert-circle'); return; }
+    state.syncConfig.linked = true;
     pushStateToCloud(true); showToast('Dit toestel geforceerd naar de cloud gepusht','cloud');
   });
   const forcePullBtn = $id('cfg-sync-force-pull');
@@ -2670,6 +2702,7 @@ function bindSync(){
     if(!cloud){ showToast('Geen cloud-data gevonden','alert-circle'); return; }
     snapshotLocalBeforeOverwrite();
     state = cloud.parsed;
+    state.syncConfig.linked = true;
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
     renderAll();
     showToast('Cloud-data hier geladen (lokale versie ervoor is bewaard als back-up)','check-circle-2');
