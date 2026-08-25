@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Command Deck — Persoonlijk Dashboard</title>
 <link rel="icon" type="image/png" href="favicon.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -75,6 +75,16 @@
   .nav-btn:hover i{ transform:scale(1.12); }
   .nav-btn.active{ color:#fff; background:linear-gradient(135deg, rgba(168,85,247,0.35), rgba(59,130,246,0.25));
     border-color:var(--border-glow-strong); box-shadow:0 0 18px rgba(168,85,247,0.35); }
+  /* Homescreen-icoon (standalone/PWA) modus op iOS: geen browserbalk meer onderaan die ruimte
+     reserveert, dus de navbar zit anders vlak tegen de "home indicator"-streep en oogt daardoor
+     kleiner/gedrukter. Reserveer de veilige zone (env(safe-area-inset-bottom)) en maak de knoppen
+     zelf ook wat groter in die modus. */
+  @media (display-mode: standalone){
+    #bottom-nav{ padding-bottom:calc(10px + env(safe-area-inset-bottom)); padding-top:10px; }
+    #bottom-nav .nav-btn{ width:52px; height:52px; }
+    #bottom-nav .nav-btn i{ width:22px; height:22px; }
+    main{ padding-bottom:calc(96px + env(safe-area-inset-bottom)) !important; }
+  }
 
   .page{ display:none; }
   .page.active{ display:block; animation:pageIn .35s ease; }
@@ -136,7 +146,10 @@
   .today-daynum{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%;
     background:linear-gradient(135deg, var(--purple), var(--blue)); color:#fff !important; font-weight:700;
     box-shadow:0 0 10px rgba(168,85,247,0.7); }
-  .cal-cell.holiday{ background:linear-gradient(155deg, rgba(251,191,36,0.16), rgba(251,191,36,0.03)); border-color:rgba(251,191,36,0.45); }
+  /* Feestdag: bewust GEEN border-color meer (dat leek te veel op de 'vandaag'-rand) — enkel een
+     zachte amberachtige achtergrondtint + het sterretje-icoontje geven een feestdag aan. */
+  .cal-cell.holiday{ background:linear-gradient(155deg, rgba(251,191,36,0.14), rgba(251,191,36,0.03)); }
+  .cal-cell.today.holiday{ background:linear-gradient(155deg, rgba(168,85,247,0.24), rgba(251,191,36,0.1)); }
   .holiday-star{ position:absolute; top:6px; right:6px; color:var(--amber); filter:drop-shadow(0 0 4px rgba(251,191,36,0.7)); }
   .task-dot{ position:absolute; bottom:7px; left:8px; min-width:7px; height:7px; padding:0 2px; border-radius:100px; background:var(--cyan-soft); box-shadow:0 0 6px var(--cyan-soft); font-size:8px; line-height:7px; text-align:center; color:#04222a; font-family:'JetBrains Mono',monospace; }
   .shift-pill{ display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:8px; font-size:10px; font-family:'JetBrains Mono',monospace; font-weight:600;
@@ -161,7 +174,8 @@
   .toast-container{ position:fixed; bottom:84px; left:50%; transform:translateX(-50%); z-index:9998; display:flex; flex-direction:column; gap:8px; align-items:center; }
   .toast{ background:linear-gradient(155deg,var(--card-1),var(--card-2)); border:1px solid var(--border-glow-strong); border-radius:100px;
     padding:10px 18px; display:flex; align-items:center; gap:8px; font-size:13px; opacity:0; transform:translateY(10px) scale(0.95);
-    transition:all .25s ease; box-shadow:0 10px 30px -10px rgba(168,85,247,0.5); white-space:nowrap; }
+    transition:all .25s ease; box-shadow:0 10px 30px -10px rgba(168,85,247,0.5);
+    max-width:calc(100vw - 32px); white-space:normal; text-align:center; }
   .toast.show{ opacity:1; transform:translateY(0) scale(1); }
 
   .modal-overlay{ position:fixed; inset:0; background:rgba(5,7,12,0.72); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center;
@@ -351,7 +365,7 @@
     <button class="nav-btn" id="settings-btn" title="Instellingen"><i data-lucide="settings" class="w-5 h-5"></i></button>
   </aside>
 
-  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-20 flex justify-start sm:justify-around items-center bg-[#0d1117]/95 border-t border-white/10 py-2 backdrop-blur overflow-x-auto">
+  <nav id="bottom-nav" class="sm:hidden fixed bottom-0 left-0 right-0 z-20 flex justify-start sm:justify-around items-center bg-[#0d1117]/95 border-t border-white/10 py-2 backdrop-blur overflow-x-auto">
     <button class="nav-btn active shrink-0" data-page="dashboard"><i data-lucide="home" class="w-5 h-5"></i></button>
     <button class="nav-btn shrink-0" data-page="financien"><i data-lucide="wallet" class="w-5 h-5"></i></button>
     <button class="nav-btn shrink-0" data-page="rooster"><i data-lucide="calendar-days" class="w-5 h-5"></i></button>
@@ -362,7 +376,7 @@
     <button class="nav-btn shrink-0" id="settings-btn-mobile"><i data-lucide="settings" class="w-5 h-5"></i></button>
   </nav>
 
-  <main class="flex-1 overflow-y-auto px-5 sm:px-8 py-6 pb-24 sm:pb-6">
+  <main class="flex-1 overflow-y-auto overflow-x-hidden px-5 sm:px-8 py-6 pb-24 sm:pb-6">
 
     <header class="flex items-center justify-between mb-6 flex-wrap gap-3">
       <div>
@@ -499,7 +513,7 @@
             </div>
             <div class="flex items-center gap-2">
               <span id="fuel-updated" class="text-[11px] font-mono text-[var(--text-3)]">—</span>
-              <i data-lucide="refresh-cw" id="fuel-refresh" class="w-4 h-4 text-[var(--text-2)] cursor-pointer hover:text-[var(--amber-soft)] transition hover:rotate-90"></i>
+              <button id="fuel-refresh" type="button" class="p-1 -m-1 text-[var(--text-2)] hover:text-[var(--amber-soft)] transition"><i data-lucide="refresh-cw" class="w-4 h-4 pointer-events-none"></i></button>
             </div>
           </div>
           <div id="fuel-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
@@ -657,10 +671,19 @@
           <input id="exp-datum" type="date" class="bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
           <button id="exp-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
         </div>
-        <div class="flex items-center gap-2 mb-4">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
           <button id="exp-csv-import-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> Importeer CSV van je bank</button>
           <input id="exp-csv-file" type="file" accept=".csv,text/csv" class="hidden" />
-          <span class="text-[11px] text-[var(--text-3)]">Export je transacties bij Argenta (of een andere bank) als CSV en importeer hier — enkel uitgaande bedragen worden toegevoegd, als "Overig". Er kan geen automatische live-koppeling met je bank gemaakt worden vanuit dit dashboard (geen bank staat dat toe zonder officiële erkenning) — dit is de dichtstbijzijnde werkbare oplossing.</span>
+          <button id="argenta-howto-toggle" type="button" class="text-[11px] text-[var(--purple-soft)] underline underline-offset-2 flex items-center gap-1"><i data-lucide="help-circle" class="w-3 h-3"></i> Hoe download ik dit bij Argenta?</button>
+          <span class="text-[11px] text-[var(--text-3)] basis-full">Er kan geen automatische live-koppeling met je bank gemaakt worden vanuit dit dashboard (geen bank staat dat toe zonder officiële erkenning) — CSV-import is de dichtstbijzijnde werkbare oplossing. Enkel uitgaande bedragen worden toegevoegd, als "Overig".</span>
+          <div id="argenta-howto-body" class="hidden basis-full text-[11px] text-[var(--text-2)] bg-white/[0.03] border border-white/10 rounded-xl p-3 mt-1 leading-relaxed">
+            Argenta heeft geen aparte "CSV"-knop in de app zelf — het gaat via Internetbankieren (browser, niet de app):<br/>
+            1. Log in op Argenta Internetbankieren (via <span class="font-mono">argenta.be</span>, niet de app) en open de gewenste rekening.<br/>
+            2. Gebruik "Vind een transactie op" om de gewenste periode te zoeken (bv. deze maand).<br/>
+            3. Klik op "zoeken en downloaden" → je krijgt een Excel-bestand (.xlsx) van de transacties.<br/>
+            4. Open dat bestand en kies Bestand → Opslaan als → CSV (met puntkomma-scheidingsteken).<br/>
+            5. Kom terug hier en klik op "Importeer CSV van je bank" om dat CSV-bestand te kiezen.
+          </div>
         </div>
         <div id="expense-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
       </div>
@@ -975,14 +998,18 @@
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-display text-lg font-semibold">Nieuw recept</h3>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-1">
           <input id="recipe-naam" type="text" placeholder="Naam (bv. Spaghetti bolognese)" class="bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
           <div class="flex gap-2">
             <label class="flex-1 btn-ghost text-xs px-3 py-2 rounded-full flex items-center justify-center gap-1.5 cursor-pointer"><i data-lucide="image" class="w-3.5 h-3.5"></i> Foto<input id="recipe-photo" type="file" accept="image/*" class="hidden" /></label>
             <label class="flex-1 btn-ghost text-xs px-3 py-2 rounded-full flex items-center justify-center gap-1.5 cursor-pointer"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> PDF<input id="recipe-pdf" type="file" accept="application/pdf" class="hidden" /></label>
           </div>
         </div>
-        <textarea id="recipe-ingredienten" placeholder="Ingrediënten, één per lijn (bv.&#10;400g spaghetti&#10;500g gehakt&#10;1 blik tomaten)" rows="4" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-[var(--purple)] transition mb-3"></textarea>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-[11px]">
+          <span id="recipe-photo-status" class="hidden text-[var(--success)] flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> <span></span></span>
+          <span id="recipe-pdf-status" class="hidden text-[var(--success)] flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> <span></span></span>
+        </div>
+        <textarea id="recipe-ingredienten" placeholder="Ingrediënten, één per lijn (bv.&#10;400g spaghetti&#10;500g gehakt&#10;1 blik tomaten) — mag leeg als je een PDF toevoegt, dan lezen we die uit" rows="4" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-[var(--purple)] transition mb-3"></textarea>
         <textarea id="recipe-instructies" placeholder="Bereidingswijze (optioneel)" rows="3" class="w-full bg-white/[0.03] border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-[var(--purple)] transition mb-3"></textarea>
         <button id="recipe-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="sparkles" class="w-4 h-4"></i> Structureren &amp; opslaan</button>
       </div>
@@ -1432,6 +1459,29 @@ if(state.verlofDagenVersion < 3){
   ];
   verlofBaseline2.forEach(v=>{ if(!state.verlofDagen.some(x=>x.datum===v.datum && x.type===v.type)) state.verlofDagen.push(v); });
   state.verlofDagenVersion = 3;
+}
+// Beerschot-wedstrijden: de in-app AI-balk heeft geen internettoegang en kan dus geen actueel
+// programma opzoeken. Dit is het (deels) bevestigde programma van K Beerschot VA in de Challenger
+// Pro League 2026-2027 t.e.m. november, opgezocht via web search — eenmalig als taken toegevoegd
+// (versie-gate zodat het maar 1x gebeurt en niet dupliceert bij een volgende update).
+if(!state.beerschotSeedVersion){
+  const beerschotMatches = [
+    {datum:'2026-08-16', tekst:'⚽ Beerschot - Jong Gent'},
+    {datum:'2026-08-22', tekst:'⚽ Dender EH - Beerschot'},
+    {datum:'2026-08-29', tekst:'⚽ Jong Anderlecht - Beerschot'},
+    {datum:'2026-09-04', tekst:'⚽ Beerschot - Patro Eisden'},
+    {datum:'2026-09-11', tekst:'⚽ Beerschot - Lierse SK'},
+    {datum:'2026-09-19', tekst:'⚽ Sporting Hasselt - Beerschot'},
+    {datum:'2026-10-10', tekst:'⚽ Beerschot - FC Liège'},
+    {datum:'2026-10-24', tekst:'⚽ Eupen - Beerschot'},
+    {datum:'2026-10-31', tekst:'⚽ Beerschot - Francs Borains'},
+    {datum:'2026-11-07', tekst:'⚽ Virton - Beerschot'},
+    {datum:'2026-11-21', tekst:'⚽ Beerschot - Jong Genk'},
+  ];
+  beerschotMatches.forEach((m,idx)=>{
+    state.extra.push({ id:'beerschot_'+m.datum+'_'+idx, datum: new Date(m.datum+'T15:00:00').toISOString(), tekst:m.tekst, icon:'trophy', custom:true, deadline:null });
+  });
+  state.beerschotSeedVersion = 1;
 }
 if(!state.aiConfig) state.aiConfig = { apiKey:'', model:'claude-haiku-4-5-20251001' };
 if(!state.commuteConfig) state.commuteConfig = { tomtomKey:'', coords:null };
@@ -2016,6 +2066,8 @@ function bankCsvToExpenses(text){
 }
 function bindExpenseCsvImport(){
   const btn = $id('exp-csv-import-btn'), fileInput = $id('exp-csv-file');
+  const howtoBtn = $id('argenta-howto-toggle'), howtoBody = $id('argenta-howto-body');
+  if(howtoBtn && howtoBody) howtoBtn.addEventListener('click', ()=> howtoBody.classList.toggle('hidden'));
   if(!btn || !fileInput) return;
   btn.addEventListener('click', ()=> fileInput.click());
   fileInput.addEventListener('change', async ()=>{
@@ -3878,22 +3930,40 @@ const RECIPE_DOC_STYLE = `
   h2{ font-family:Arial,sans-serif; font-size:15px; text-transform:uppercase; letter-spacing:1px; color:#555; margin-top:28px; }
   ul{ padding-left:20px; } li{ margin-bottom:4px; }
   ol{ padding-left:20px; } ol li{ margin-bottom:10px; line-height:1.6; }
-  .doc-toolbar{ max-width:680px; margin:16px auto 0; padding:0 20px; display:flex; gap:10px; }
+  .doc-toolbar{ max-width:680px; margin:0 auto; padding:14px 20px; display:flex; gap:10px; position:sticky; top:0; background:#fdfcf9; z-index:1; border-bottom:1px solid #e8e5dd; }
   .doc-toolbar button{ font-family:Arial,sans-serif; font-size:13px; padding:8px 16px; border-radius:999px; border:1px solid #ccc; background:#fff; cursor:pointer; }
-  @media print{ .doc-toolbar{ display:none; } body{ background:#fff; } }
+  .doc-toolbar button.doc-close{ background:#333; color:#fff; border-color:#333; }
+  @media print{
+    .doc-toolbar{ display:none; }
+    body{ background:#fff; }
+    body > *:not(#recipe-doc-overlay){ display:none !important; }
+    #recipe-doc-overlay{ position:static !important; overflow:visible !important; }
+  }
 `;
-/* "Bekijk" — opent het recept in dezelfde documentstijl als de PDF-export, in een nieuw tabblad.
-   Print/PDF-bewaren gebeurt hier via een knop (browser se "Opslaan als PDF" in de printdialoog),
-   niet automatisch — enkel de expliciete afdruk-actie triggert dat. */
+/* "Bekijk" — toont het recept in dezelfde documentstijl als de PDF-export, als een in-app
+   full-screen overlay (géén window.open-popup: die blijft in standalone/PWA-modus op iOS soms
+   hangen zonder duidelijke terugweg). Sluiten kan altijd via de zichtbare "Sluiten"-knop of Escape.
+   Print/PDF-bewaren gebeurt via een aparte knop (browser's "Opslaan als PDF" in de printdialoog). */
+function closeRecipeDocument(){
+  const el = $id('recipe-doc-overlay');
+  if(el) el.remove();
+  document.removeEventListener('keydown', recipeDocEscHandler);
+}
+function recipeDocEscHandler(e){ if(e.key==='Escape') closeRecipeDocument(); }
 function openRecipeDocument(r){
-  const w = window.open('', '_blank');
-  if(!w){ showToast('Pop-up geblokkeerd — sta pop-ups toe voor deze pagina','alert-triangle'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${r.naam}</title>
-    <style>${RECIPE_DOC_STYLE}</style></head><body>
-    <div class="doc-toolbar"><button onclick="window.print()">🖨️ Afdrukken / opslaan als PDF</button></div>
-    ${recipeDocHTML(r)}
-    </body></html>`);
-  w.document.close();
+  closeRecipeDocument();
+  const overlay = document.createElement('div');
+  overlay.id = 'recipe-doc-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:300;background:#fdfcf9;overflow-y:auto;-webkit-overflow-scrolling:touch;';
+  overlay.innerHTML = `<style>${RECIPE_DOC_STYLE}</style>
+    <div class="doc-toolbar">
+      <button class="doc-close" id="recipe-doc-close-btn">✕ Sluiten</button>
+      <button onclick="window.print()">🖨️ Afdrukken / opslaan als PDF</button>
+    </div>
+    ${recipeDocHTML(r)}`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#recipe-doc-close-btn').addEventListener('click', closeRecipeDocument);
+  document.addEventListener('keydown', recipeDocEscHandler);
 }
 function openRecipePdf(r){
   try{
@@ -3965,6 +4035,35 @@ function fileToBase64(file){
     reader.readAsDataURL(file);
   });
 }
+/* PDF-tekst uitlezen (client-side, via pdf.js — lazy geladen, enkel als er echt een PDF gekozen wordt) */
+let pdfJsLoadPromise = null;
+function ensurePdfJs(){
+  if(window.pdfjsLib) return Promise.resolve();
+  if(pdfJsLoadPromise) return pdfJsLoadPromise;
+  pdfJsLoadPromise = new Promise((resolve,reject)=>{
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.onload = ()=>{
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      resolve();
+    };
+    script.onerror = ()=> reject(new Error('kon pdf.js niet laden (geen internet?)'));
+    document.head.appendChild(script);
+  });
+  return pdfJsLoadPromise;
+}
+async function extractPdfText(file){
+  await ensurePdfJs();
+  const buf = await file.arrayBuffer();
+  const doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  let text = '';
+  for(let i=1; i<=doc.numPages; i++){
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(it=>it.str).join(' ') + '\n';
+  }
+  return text.trim();
+}
 /* Lokale opmaak zonder AI-key: nette hoofdletters, lege lijnen weg, bullets consistent */
 function localStructureRecipe(ingredientenRaw, instructiesRaw){
   const ingredienten = ingredientenRaw.split('\n').map(s=>s.trim()).filter(Boolean)
@@ -3996,20 +4095,47 @@ async function aiStructureRecipe(naam, ingredientenRaw, instructiesRaw){
   return localStructureRecipe(ingredientenRaw, instructiesRaw);
 }
 function bindRecipes(){
+  const photoEl = $id('recipe-photo'), pdfEl = $id('recipe-pdf');
+  const photoStatus = $id('recipe-photo-status'), pdfStatus = $id('recipe-pdf-status');
+  photoEl.addEventListener('change', ()=>{
+    if(photoEl.files[0]){ photoStatus.querySelector('span').textContent = photoEl.files[0].name; photoStatus.classList.remove('hidden'); safeIcons(); }
+    else photoStatus.classList.add('hidden');
+  });
+  pdfEl.addEventListener('change', ()=>{
+    if(pdfEl.files[0]){ pdfStatus.querySelector('span').textContent = pdfEl.files[0].name; pdfStatus.classList.remove('hidden'); safeIcons(); }
+    else pdfStatus.classList.add('hidden');
+  });
   $id('recipe-add-btn').addEventListener('click', async ()=>{
-    const naamEl=$id('recipe-naam'), ingEl=$id('recipe-ingredienten'), insEl=$id('recipe-instructies'), pdfEl=$id('recipe-pdf'), photoEl=$id('recipe-photo');
+    const naamEl=$id('recipe-naam'), ingEl=$id('recipe-ingredienten'), insEl=$id('recipe-instructies');
     const naam = naamEl.value.trim();
     if(!naam){ showToast('Vul een naam in','alert-circle'); return; }
-    if(!ingEl.value.trim()){ showToast('Vul minstens 1 ingrediënt in','alert-circle'); return; }
+    if(!ingEl.value.trim() && !pdfEl.files[0]){ showToast('Vul ingrediënten in, of voeg een PDF toe','alert-circle'); return; }
     const btn = $id('recipe-add-btn'); const origHTML = btn.innerHTML;
     btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4"></i> Bezig met structureren…'; btn.disabled=true; safeIcons();
     let pdfBase64 = null, photoBase64 = null;
     if(pdfEl.files[0]){ try{ pdfBase64 = await fileToBase64(pdfEl.files[0]); } catch(e){} }
     if(photoEl.files[0]){ try{ photoBase64 = await fileToBase64(photoEl.files[0]); } catch(e){} }
-    const structured = await aiStructureRecipe(naam, ingEl.value, insEl.value);
+    // Als er geen ingrediënten getypt zijn maar wel een PDF gekozen is: lees de PDF-tekst uit en
+    // gebruik die als bron — zo wordt een PDF-recept op exact dezelfde manier gestructureerd/
+    // opgeslagen als een getypt recept (dezelfde aiStructureRecipe/localStructureRecipe-pipeline).
+    let ingredientenRaw = ingEl.value, instructiesRaw = insEl.value;
+    if(!ingredientenRaw.trim() && pdfEl.files[0]){
+      try{
+        const pdfText = await extractPdfText(pdfEl.files[0]);
+        if(!pdfText){ throw new Error('lege PDF-tekst'); }
+        ingredientenRaw = pdfText;
+        if(!state.aiConfig.apiKey) showToast('PDF uitgelezen — met een AI-key (Instellingen) worden ingrediënten/stappen netter gestructureerd','info');
+      } catch(e){
+        btn.innerHTML = origHTML; btn.disabled=false; safeIcons();
+        showToast('Kon geen tekst uit de PDF lezen ('+e.message+') — typ de ingrediënten handmatig in','alert-triangle');
+        return;
+      }
+    }
+    const structured = await aiStructureRecipe(naam, ingredientenRaw, instructiesRaw);
     state.recipes.push({ id:'recipe_'+Date.now(), naam, ingredienten:structured.ingredienten, instructies:structured.instructies, pdfBase64, photoBase64 });
     saveState(state);
     naamEl.value=''; ingEl.value=''; insEl.value=''; pdfEl.value=''; photoEl.value='';
+    photoStatus.classList.add('hidden'); pdfStatus.classList.add('hidden');
     btn.innerHTML = origHTML; btn.disabled=false; safeIcons();
     renderRecipes(); showToast('Recept "'+naam+'" opgeslagen en gestructureerd','chef-hat');
   });
@@ -4040,6 +4166,7 @@ function detectTaskCommand(question){
 }
 async function askAI(question){
   question = (question||'').trim(); if(!question) return;
+  const inputEl = $id('ai-input'); if(inputEl) inputEl.value = ''; // veld leegmaken zodra de vraag verstuurd is
   const answerEl = $id('ai-answer-content'), wrapEl = $id('ai-answer-wrap');
   wrapEl.classList.add('open');
 
