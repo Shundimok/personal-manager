@@ -848,6 +848,22 @@
         <div id="extraprest-list" class="space-y-2 max-h-[240px] overflow-y-auto pr-1"></div>
       </div>
 
+      <div class="panel p-6 mb-5" style="border-color:rgba(103,232,249,0.35)">
+        <p class="text-xs font-mono text-[var(--cyan-soft)] mb-1 flex items-center gap-1.5"><i data-lucide="calculator" class="w-3.5 h-3.5"></i> COMPENSATIE-CALCULATOR</p>
+        <h3 class="font-display text-lg font-semibold mb-1">Wat levert een onregelmatige prestatie op?</h3>
+        <p class="text-xs text-[var(--text-3)] mb-4">Gebaseerd op de 26 exacte rekenvoorbeelden uit het simulatiedocument van je vakbond (ABVV), herberekend met jouw eigen uurloon. Kies de situatie die het dichtst bij de jouwe aansluit — dit is een scenario-kiezer op basis van geverifieerde echte voorbeelden, geen vrije berekening voor eender welk tijdstip: het brondocument bevat nergens een algemene formule of CAO-verwijzing, dus een situatie die hier niet tussenstaat kunnen we niet betrouwbaar zelf afleiden.</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <select id="comp-calc-scenario" class="flex-1 min-w-[240px] bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition"></select>
+          <input id="comp-calc-datum" type="date" class="bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+        </div>
+        <div id="comp-calc-result" class="rounded-xl border border-white/10 bg-white/[0.03] p-4"></div>
+        <div class="flex flex-wrap gap-3 mt-4 text-xs text-[var(--text-3)]">
+          <label class="flex items-center gap-1.5">Woon-werk afstand (enkel, km) <input id="cfg-km-afstand" type="number" step="0.1" style="width:70px" class="bg-white/[0.03] border border-white/10 rounded-full px-2 py-1 font-mono text-[var(--text-1)]" /></label>
+          <label class="flex items-center gap-1.5">Km-tarief (€/km) <input id="cfg-km-tarief" type="number" step="0.001" style="width:80px" class="bg-white/[0.03] border border-white/10 rounded-full px-2 py-1 font-mono text-[var(--text-1)]" /></label>
+          <label class="flex items-center gap-1.5">Ongemakkenbonus (€) <input id="cfg-ongemakkenbonus" type="number" step="1" style="width:70px" class="bg-white/[0.03] border border-white/10 rounded-full px-2 py-1 font-mono text-[var(--text-1)]" /></label>
+        </div>
+      </div>
+
       <div class="panel p-6 mb-5">
         <p class="text-xs font-mono text-[var(--text-2)] mb-1">VERLOFSALDO 2026</p>
         <h3 class="font-display text-lg font-semibold mb-4">Verlofdagen per type</h3>
@@ -1368,6 +1384,14 @@ if(state.loonConfigVersion < 6){
 if(!state.loonConfigVersion || state.loonConfigVersion < 7){
   state.loonConfig.belastingKalibratiePct = 16;
   state.loonConfigVersion = 7;
+}
+// v8: instellingen voor de compensatie-calculator (extra/onregelmatige prestaties) — woon-werkafstand
+// enkel, het officiële km-tarief (geïndexeerd, Q3 2026: €0,444/km) en de vaste ongemakkenbonus.
+if(state.loonConfigVersion < 8){
+  if(state.loonConfig.kmAfstandEnkel === undefined) state.loonConfig.kmAfstandEnkel = 12;
+  if(state.loonConfig.kmVergoedingPerKm === undefined) state.loonConfig.kmVergoedingPerKm = 0.444;
+  if(state.loonConfig.ongemakkenbonusBedrag === undefined) state.loonConfig.ongemakkenbonusBedrag = 75;
+  state.loonConfigVersion = 8;
 }
 if(!state.verlofDagen) state.verlofDagen = [];
 if(!state.verlofDagenVersion || state.verlofDagenVersion < 2){
@@ -3061,6 +3085,140 @@ function shiftPremiumPercent(date, shiftCode){
   if(dow===6) return p.vl_zaterdag;
   return p.vl_weekday;
 }
+/* ============ COMPENSATIE-CALCULATOR (extra/onregelmatige prestaties) ============
+   Gebaseerd op het simulatiedocument van je vakbond (ABVV) — 26 exact uitgewerkte, geverifieerde
+   rekenvoorbeelden. Elk scenario hieronder is 1-op-1 overgenomen (het aantal uren per premie-categorie,
+   OT100/OT150, CO-aanvul, travel, comp-uren, ongemakkenbonus, km-vergoeding), enkel de bedragen worden
+   herberekend met jouw eigen uurloon/afstand i.p.v. het voorbeeld-uurloon (€38,56) uit het document.
+   BELANGRIJK — dit is bewust een scenario-KIEZER, geen vrije generator: het brondocument bevat nergens
+   een formule of CAO-verwijzing die zegt HOE uren over de categorieën verdeeld moeten worden voor een
+   situatie die niet letterlijk één van deze 26 voorbeelden is. Een 27ste, nieuw scenario zelf verzinnen
+   zou gokken zijn, dus dat doet deze calculator expliciet niet.
+   Kolom-mapping naar de bestaande shiftpremie-categorieën (identieke percentages als in state.loonConfig.premies):
+     C = vl_weekday (9,5%) · D = nacht_weekday (35,5%) · E = vl_zaterdag (31,5%)
+     F = nacht_zaterdag (85,5%) · G = vl_zondag (109,5%) · H = nacht_zondag (135,5%)
+   comp = uren "recup" (tijd, NIET uitbetaald — het document telt dit wel mee als bruto-bedrag, maar dat
+   is een interne waardering van je vakbond, geen echte uitbetaling; wij tonen dit daarom apart).
+   ot100/coAanvul/travel = uren aan 100% van je uurloon. ot150 = uren aan 150%. ongemak = vaste bonus.
+   km = of er een aparte km-vergoeding (heen+terug) van toepassing is voor dit scenario. */
+const OVERWERK_SCENARIOS = [
+  { id:'s6',  cat:'vroeg', naam:'Komen werken van 02u tot 06u (vroeger opkomen)', C:4, D:4, ot150:4 },
+  { id:'s7',  cat:'vroeg', naam:'Reserve tijdens vroege en komt ook vroeger op (2-6u)', C:4, D:4, comp:1, ot150:4 },
+  { id:'s8',  cat:'vroeg', naam:'Geen 11u rust en vroeger opkomen na dagtaak', C:4, D:4, comp:2, ot150:4 },
+  { id:'s9',  cat:'vroeg', naam:'Komen werken van 02u tot 06u op een zondag', G:8, ot150:4 },
+  { id:'s11', cat:'vroeg', naam:'Procedure vroeger opkomen van 02u tot 10u', C:8, D:4, ot150:4 },
+  { id:'s14', cat:'vroeg', naam:'(V/L) Procedure vroeger opkomen van 02u tot 08u', C:6, D:4, ot150:4 },
+  { id:'s15', cat:'vroeg', naam:'(V/L) Ploeg met L en je komt van 02u tot 07u (weekdag)', C:5, D:4, ot150:4 },
+  { id:'s16', cat:'vroeg', naam:'(V/L) Stond V op zondag, komt 02u-07u (Za nacht)', C:1, G:7, ot150:4 },
+  { id:'s17', cat:'vroeg', naam:'(V/L) Stond L op zondag, komt 02u-07u (Za nacht)', G:8, ot150:4 },
+  { id:'s19', cat:'vroeg', naam:'Procedure vroeger opkomen van 02u tot 14u', C:8, D:4, comp:6, ot150:4 },
+  { id:'s22', cat:'callout', naam:'Verlof, call-out 02u tot 06u', C:4, D:4, ot100:3, travel:1, ongemak:true },
+  { id:'s23', cat:'callout', naam:'Verlof, call-out 02u tot 07u', C:4, D:4, ot100:3.5, coAanvul:3.5, travel:1, ongemak:true },
+  { id:'s24', cat:'callout', naam:'Call-out (met V of L) standaard procedure', C:8, ot100:7, travel:1, ongemak:true },
+  { id:'s25', cat:'callout', naam:'Call-out en werkt <4u (bv. 3u)', C:3, ot100:2, coAanvul:1, travel:1, ongemak:true },
+  { id:'s26', cat:'callout', naam:'Call-out en werkt >4u (bv. 4,55u)', C:1, D:4, ot100:4, coAanvul:3, travel:1, ongemak:true },
+  { id:'s27', cat:'callout', naam:'Call-out op zondag', G:8, comp:3, travel:1, ongemak:true },
+  { id:'s28', cat:'callout', naam:'Call-out op zondag >4u en <8u', G:5, comp:3, ot100:3, travel:1, ongemak:true },
+  { id:'s29', cat:'callout', naam:'Call-out nacht (in de week)', D:8, comp:8, ot100:7, travel:1, ongemak:true },
+  { id:'s30', cat:'callout', naam:'Call-out zaterdagnacht', D:8, G:1, ot100:7, travel:7, ongemak:true },
+  { id:'s31', cat:'callout', naam:'Call-out zondagnacht', H:8, ot100:17, travel:1, ongemak:true },
+  { id:'s34', cat:'extra', naam:'OFF, extra prestatie 02u tot 06u (4u)', D:4, comp:6, ot150:4, km:true },
+  { id:'s35', cat:'extra', naam:'OFF, extra prestatie van 4u', C:4, comp:6, km:true },
+  { id:'s36', cat:'extra', naam:'Extra prestatie tijdens V/L, doordeweeks', C:8, comp:14, km:true },
+  { id:'s37', cat:'extra', naam:'Extra prestatie tijdens V/L op zondag +3u extra', C:8, comp:19, km:true },
+  { id:'s38', cat:'extra', naam:'Extra prestatie maandagnacht', D:8, comp:8, ot100:6, km:true },
+  { id:'s39', cat:'extra', naam:'Extra prestatie zondagnacht', D:8, comp:19, ot100:6, km:true },
+];
+const OVERWERK_CAT_LABELS = { vroeg:'Vroeger opkomen / na dagtaak', callout:'Call-out (tijdens verlof)', extra:'Extra prestatie tijdens OFF/verlof' };
+const OVERWERK_PREMIE_KEYS = { C:'vl_weekday', D:'nacht_weekday', E:'vl_zaterdag', F:'nacht_zaterdag', G:'vl_zondag', H:'nacht_zondag' };
+function berekenOverwerkScenario(scenario){
+  const uurloon = state.loonConfig.uurloon;
+  const premies = state.loonConfig.premies;
+  const premieBreakdown = [];
+  let cashBruto = 0;
+  ['C','D','E','F','G','H'].forEach(col=>{
+    const uren = scenario[col];
+    if(!uren) return;
+    const key = OVERWERK_PREMIE_KEYS[col];
+    const pct = premies[key];
+    const bedrag = uren * uurloon * (pct/100);
+    cashBruto += bedrag;
+    premieBreakdown.push({ label: CFG_PREMIE_LABELS[key] || key, uren, pct, bedrag });
+  });
+  const ot100Bedrag = (scenario.ot100||0) * uurloon;
+  const coAanvulBedrag = (scenario.coAanvul||0) * uurloon;
+  const travelBedrag = (scenario.travel||0) * uurloon;
+  const ot150Bedrag = (scenario.ot150||0) * uurloon * 1.5;
+  const ongemakBedrag = scenario.ongemak ? (state.loonConfig.ongemakkenbonusBedrag||75) : 0;
+  cashBruto += ot100Bedrag + coAanvulBedrag + travelBedrag + ot150Bedrag + ongemakBedrag;
+  const compUren = scenario.comp || 0;
+  const compWaarde = compUren * uurloon; // info only — wordt tijd, geen geld
+  const kmVergoeding = scenario.km ? (state.loonConfig.kmAfstandEnkel * 2 * state.loonConfig.kmVergoedingPerKm) : 0;
+  return { premieBreakdown, ot100Bedrag, coAanvulBedrag, travelBedrag, ot150Bedrag, ongemakBedrag, cashBruto, compUren, compWaarde, kmVergoeding };
+}
+const CFG_PREMIE_LABELS = { vl_weekday:'V/L ma-vr', vl_zaterdag:'V/L zaterdag', vl_zondag:'V/L zondag', nacht_weekday:'Nacht ma-vr', nacht_zaterdag:'Nacht zaterdag', nacht_zondag:'Nacht zondag', feestdag_vl:'Feestdag V/L', feestdag_nacht:'Feestdag Nacht' };
+function renderCompCalc(){
+  const scenarioId = $id('comp-calc-scenario') ? $id('comp-calc-scenario').value : null;
+  const scenario = OVERWERK_SCENARIOS.find(s=>s.id===scenarioId) || OVERWERK_SCENARIOS[0];
+  const r = berekenOverwerkScenario(scenario);
+  const datumEl = $id('comp-calc-datum');
+  const datum = datumEl && datumEl.value ? new Date(datumEl.value+'T00:00:00') : new Date();
+  // Marginale netto: bereken het verschil in netto als dit bruto-bedrag bovenop de reeds opgebouwde
+  // maand-bruto (basisloon + premie) van diezelfde maand komt — realistischer dan een los percentage.
+  const mStart = new Date(datum.getFullYear(), datum.getMonth(), 1), mEnd = new Date(datum.getFullYear(), datum.getMonth()+1, 0);
+  const baseline = weekBasisEarnings(mStart, mEnd).bedrag + periodEarnings(mStart, mEnd).premie;
+  const nettoZonder = nettoVanBrutoMaand(baseline);
+  const nettoMet = nettoVanBrutoMaand(baseline + r.cashBruto);
+  const marginaalNetto = nettoMet - nettoZonder;
+
+  const premieRows = r.premieBreakdown.map(p=>
+    `<div class="flex items-center justify-between text-sm"><span class="text-[var(--text-2)]">${p.uren}u aan ${p.label} (${p.pct}%)</span><span class="font-mono">${fmtEUR(p.bedrag)}</span></div>`).join('');
+  const extraRows = [
+    r.ot100Bedrag>0 ? `<div class="flex items-center justify-between text-sm"><span class="text-[var(--text-2)]">${scenario.ot100}u aan 100% (OT100)</span><span class="font-mono">${fmtEUR(r.ot100Bedrag)}</span></div>` : '',
+    r.coAanvulBedrag>0 ? `<div class="flex items-center justify-between text-sm"><span class="text-[var(--text-2)]">${scenario.coAanvul}u call-out aanvulling</span><span class="font-mono">${fmtEUR(r.coAanvulBedrag)}</span></div>` : '',
+    r.travelBedrag>0 ? `<div class="flex items-center justify-between text-sm"><span class="text-[var(--text-2)]">${scenario.travel}u reistijd (100%)</span><span class="font-mono">${fmtEUR(r.travelBedrag)}</span></div>` : '',
+    r.ot150Bedrag>0 ? `<div class="flex items-center justify-between text-sm"><span class="text-[var(--text-2)]">${scenario.ot150}u aan 150% (OT150)</span><span class="font-mono">${fmtEUR(r.ot150Bedrag)}</span></div>` : '',
+    r.ongemakBedrag>0 ? `<div class="flex items-center justify-between text-sm"><span class="text-[var(--text-2)]">Ongemakkenbonus</span><span class="font-mono">${fmtEUR(r.ongemakBedrag)}</span></div>` : '',
+  ].filter(Boolean).join('');
+
+  setHTML('comp-calc-result', `
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div><p class="text-[10px] font-mono text-[var(--text-3)] uppercase mb-0.5">Cash bruto</p><p class="font-display text-2xl font-semibold">${fmtEUR(r.cashBruto)}</p></div>
+      <div><p class="text-[10px] font-mono text-[var(--cyan-soft)] uppercase mb-0.5">Cash netto ≈ (marginaal)</p><p class="font-display text-2xl font-semibold glow-text">${fmtEUR(marginaalNetto)}</p></div>
+    </div>
+    <div class="space-y-1.5 mb-3">${premieRows}${extraRows}</div>
+    ${r.compUren>0 ? `<div class="rounded-lg border border-[var(--amber-soft)]/30 bg-[var(--amber-soft)]/10 px-3 py-2 mb-2 text-sm flex items-center justify-between">
+      <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5 text-[var(--amber-soft)]"></i> ${r.compUren}u recup (comp) — <span class="text-[var(--text-3)]">wordt vrije tijd, GEEN uitbetaling</span></span>
+      <span class="font-mono text-[var(--text-3)]">(waarde ter info: ${fmtEUR(r.compWaarde)})</span></div>` : ''}
+    ${r.kmVergoeding>0 ? `<div class="flex items-center justify-between text-sm text-[var(--text-2)]"><span>Km-vergoeding (${state.loonConfig.kmAfstandEnkel}km × 2, netto, belastingvrij)</span><span class="font-mono text-[var(--text-1)]">${fmtEUR(r.kmVergoeding)}</span></div>` : ''}
+    <p class="text-[10px] text-[var(--text-3)] mt-3 pt-3 border-t border-white/10">Marginale netto = extra netto bovenop je normale loon díe maand (progressieve schijven houden hier rekening mee) — niet de km-vergoeding, die is apart al netto/belastingvrij.</p>
+  `);
+  safeIcons();
+}
+function bindCompCalc(){
+  const sel = $id('comp-calc-scenario');
+  if(!sel) return;
+  sel.innerHTML = ['vroeg','callout','extra'].map(cat=>
+    `<optgroup label="${OVERWERK_CAT_LABELS[cat]}">${OVERWERK_SCENARIOS.filter(s=>s.cat===cat).map(s=>`<option value="${s.id}">${s.naam}</option>`).join('')}</optgroup>`
+  ).join('');
+  const datumEl = $id('comp-calc-datum'); if(datumEl && !datumEl.value) datumEl.value = new Date().toISOString().slice(0,10);
+  sel.addEventListener('change', renderCompCalc);
+  if(datumEl) datumEl.addEventListener('change', renderCompCalc);
+  const afstandEl = $id('cfg-km-afstand'), tariefEl = $id('cfg-km-tarief'), ongemakEl = $id('cfg-ongemakkenbonus');
+  if(afstandEl){
+    afstandEl.value = state.loonConfig.kmAfstandEnkel;
+    afstandEl.addEventListener('change', ()=>{ state.loonConfig.kmAfstandEnkel = parseFloat(afstandEl.value)||0; saveState(state); renderCompCalc(); });
+  }
+  if(tariefEl){
+    tariefEl.value = state.loonConfig.kmVergoedingPerKm;
+    tariefEl.addEventListener('change', ()=>{ state.loonConfig.kmVergoedingPerKm = parseFloat(tariefEl.value)||0; saveState(state); renderCompCalc(); });
+  }
+  if(ongemakEl){
+    ongemakEl.value = state.loonConfig.ongemakkenbonusBedrag;
+    ongemakEl.addEventListener('change', ()=>{ state.loonConfig.ongemakkenbonusBedrag = parseFloat(ongemakEl.value)||0; saveState(state); renderCompCalc(); });
+  }
+  renderCompCalc();
+}
 const LOON_UREN_PER_DAG = 8;
 function dayEarnings(date){
   const verlof = getVerlofForDate(date);
@@ -3387,6 +3545,7 @@ function bindLoonPage(){
     });
   });
   bindExtraPrestaties();
+  bindCompCalc();
   $id('loon-settings-save').addEventListener('click', ()=>{
     state.loonConfig.uurloon = parseFloat($id('cfg-uurloon').value) || state.loonConfig.uurloon;
     state.loonConfig.gemiddeldeUrenPerMaand = parseFloat($id('cfg-gemiddelde-uren').value) || state.loonConfig.gemiddeldeUrenPerMaand;
