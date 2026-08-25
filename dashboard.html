@@ -3182,16 +3182,21 @@ function renderCompCalc(){
   const scenarioId = $id('comp-calc-scenario') ? $id('comp-calc-scenario').value : null;
   const scenario = OVERWERK_SCENARIOS.find(s=>s.id===scenarioId) || OVERWERK_SCENARIOS[0];
   const r = berekenOverwerkScenario(scenario);
-  const datumEl = $id('comp-calc-datum');
-  const datum = datumEl && datumEl.value ? new Date(datumEl.value+'T00:00:00') : new Date();
-  // Netto-schatting: zelfde methode als de dagcalculator/overurenteller elders op deze pagina —
-  // een effectief nettopercentage o.b.v. een realistisch maandbruto (i.p.v. dit ene bedrag apart te
-  // annualiseren of marginaal bovenop de volledige maand te leggen, wat bij een groot eenmalig bedrag
-  // een veel te zware/lichte belastingschijf kan simuleren). Consistent met de rest van de Werk-tab.
-  const mStart = new Date(datum.getFullYear(), datum.getMonth(), 1), mEnd = new Date(datum.getFullYear(), datum.getMonth()+1, 0);
-  const referentieMaandBruto = weekBasisEarnings(mStart, mEnd).bedrag;
-  const effPct = effectiefNettoPct(referentieMaandBruto);
-  const marginaalNetto = r.cashBruto * (effPct/100);
+  // Netto-schatting: dit volgt nu bewust dezelfde formule als het ABVV-document zelf, per categorie
+  // (uit de echte Excel-formules gehaald, niet gegokt):
+  //   Vroeger opkomen:      netto = (P / 1,1307) / 2
+  //   Call-out:             netto = (P × 0,8693) / 2
+  //   Extra prestatie(OFF): netto = km-vergoeding + (P × 0,8693) / 2
+  // waarbij P = cash-bruto + de "waarde" van je comp-uren (het document rekent comp-uren wél mee als
+  // bruto-bedrag, ook al worden ze niet uitbetaald maar als vrije tijd opgenomen — vandaar dat we P
+  // hier apart houden van het "cash bruto"-bedrag dat we je hierboven tonen). We gebruiken bewust
+  // dezelfde (vrij grove, niet-progressieve) formule als je vakbond i.p.v. de eigen progressieve
+  // belastingmotor van deze app, zodat dit altijd matcht met wat je in je eigen Excel ziet.
+  const pEquivalent = r.cashBruto + r.compWaarde;
+  let marginaalNetto;
+  if(scenario.cat==='vroeg') marginaalNetto = (pEquivalent/1.1307)/2;
+  else if(scenario.cat==='extra') marginaalNetto = r.kmVergoeding + (pEquivalent*0.8693)/2;
+  else marginaalNetto = (pEquivalent*0.8693)/2;
 
   const premieRows = r.premieBreakdown.map(p=>
     `<div class="flex items-center justify-between text-sm"><span class="text-[var(--text-2)]">${p.uren}u aan ${p.label} (${p.pct}%)</span><span class="font-mono">${fmtEUR(p.bedrag)}</span></div>`).join('');
@@ -3206,14 +3211,14 @@ function renderCompCalc(){
   setHTML('comp-calc-result', `
     <div class="grid grid-cols-2 gap-4 mb-4">
       <div><p class="text-[10px] font-mono text-[var(--text-3)] uppercase mb-0.5">Cash bruto</p><p class="font-display text-2xl font-semibold">${fmtEUR(r.cashBruto)}</p></div>
-      <div><p class="text-[10px] font-mono text-[var(--cyan-soft)] uppercase mb-0.5">Cash netto ≈ (marginaal)</p><p class="font-display text-2xl font-semibold glow-text">${fmtEUR(marginaalNetto)}</p></div>
+      <div><p class="text-[10px] font-mono text-[var(--cyan-soft)] uppercase mb-0.5">Cash netto ≈</p><p class="font-display text-2xl font-semibold glow-text">${fmtEUR(marginaalNetto)}</p></div>
     </div>
     <div class="space-y-1.5 mb-3">${premieRows}${extraRows}</div>
     ${r.compUren>0 ? `<div class="rounded-lg border border-[var(--amber-soft)]/30 bg-[var(--amber-soft)]/10 px-3 py-2 mb-2 text-sm flex items-center justify-between">
       <span class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5 text-[var(--amber-soft)]"></i> ${r.compUren}u recup (comp) — <span class="text-[var(--text-3)]">wordt vrije tijd, GEEN uitbetaling</span></span>
       <span class="font-mono text-[var(--text-3)]">(waarde ter info: ${fmtEUR(r.compWaarde)})</span></div>` : ''}
     ${r.kmVergoeding>0 ? `<div class="flex items-center justify-between text-sm text-[var(--text-2)]"><span>Km-vergoeding (${state.loonConfig.kmAfstandEnkel}km × 2, netto, belastingvrij)</span><span class="font-mono text-[var(--text-1)]">${fmtEUR(r.kmVergoeding)}</span></div>` : ''}
-    <p class="text-[10px] text-[var(--text-3)] mt-3 pt-3 border-t border-white/10">Netto-schatting o.b.v. hetzelfde effectieve nettopercentage als de rest van deze pagina — nog steeds een benadering (niet je officiële bedrijfsvoorheffing-barema), en km-vergoeding staat hier apart omdat die sowieso al netto/belastingvrij is. Kreeg je hiervoor al eens een echte loonbrief in handen? Deel het bruto/netto-bedrag met me, dan kalibreer ik dit net zoals bij de rest van de loonberekening.</p>
+    <p class="text-[10px] text-[var(--text-3)] mt-3 pt-3 border-t border-white/10">Netto-schatting volgens dezelfde (vaste, niet-progressieve) formule als je ABVV-document zelf, dus dit hoort te matchen met je Excel — nog steeds een benadering, niet je officiële bedrijfsvoorheffing-barema. Kreeg je ooit een echte loonbrief met zo'n vergoeding erop? Deel de bedragen, dan kan ik dit verder verfijnen.</p>
   `);
   safeIcons();
 }
