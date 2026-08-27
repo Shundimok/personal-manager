@@ -681,7 +681,10 @@
           <div>
             <div class="flex items-center justify-between mb-2">
               <p class="text-xs text-[var(--text-2)] font-mono">PER CATEGORIE</p>
-              <button id="auto-categorize-btn" type="button" class="text-[11px] text-[var(--purple-soft)] underline underline-offset-2 flex items-center gap-1"><i data-lucide="wand-2" class="w-3 h-3"></i> Automatisch categoriseren</button>
+              <div class="flex items-center gap-3">
+                <button id="find-duplicates-btn" type="button" class="text-[11px] text-[var(--purple-soft)] underline underline-offset-2 flex items-center gap-1"><i data-lucide="copy-x" class="w-3 h-3"></i> Dubbels opsporen</button>
+                <button id="auto-categorize-btn" type="button" class="text-[11px] text-[var(--purple-soft)] underline underline-offset-2 flex items-center gap-1"><i data-lucide="wand-2" class="w-3 h-3"></i> Automatisch categoriseren</button>
+              </div>
             </div>
             <div id="expense-breakdown" class="space-y-2 max-h-[260px] overflow-y-auto pr-1"></div>
           </div>
@@ -1345,13 +1348,29 @@
         <label class="text-xs text-[var(--text-2)] mb-1 block">Categorie</label>
         <select id="expedit-categorie" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
           <option>Boodschappen</option><option>Vervoer</option><option>Vrije tijd</option><option>Horeca</option>
-          <option>Kleding</option><option>Gezondheid</option><option>Vaste kosten extra</option><option>Overig</option>
+          <option>Kleding</option><option>Gezondheid</option><option>Vaste kosten extra</option><option>Sparen</option><option>Overig</option>
         </select>
       </div>
     </div>
     <div class="flex gap-2 mt-5">
       <button id="expedit-save-btn" class="btn-solid text-white text-sm px-4 py-2.5 rounded-full font-medium flex-1 flex items-center justify-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Opslaan</button>
       <button id="expedit-del-btn" class="btn-ghost text-sm px-4 py-2.5 rounded-full text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dedupe-review-modal">
+  <div class="modal-box" style="max-width:640px;">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display text-lg font-semibold flex items-center gap-2"><i data-lucide="copy-x" class="w-4 h-4 text-[var(--purple-soft)]"></i> Mogelijke dubbele uitgaven</h3>
+      <button class="modal-close" data-close="dedupe-review-modal" aria-label="Sluiten"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <p id="dedupe-summary" class="text-xs text-[var(--text-2)] mb-3">—</p>
+    <p class="text-[11px] text-[var(--text-3)] mb-3">Gegroepeerd per zelfde bedrag + zelfde dag. Per groepje staat het oudste (eerst toegevoegde) item standaard uitgevinkt (blijft staan) en de rest aangevinkt (wordt verwijderd) — controleer dit zelf, want een toevallig identiek bedrag op dezelfde dag kán ook gewoon twee echte, aparte uitgaven zijn.</p>
+    <div id="dedupe-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-1 mb-4"></div>
+    <div class="flex gap-2">
+      <button id="dedupe-confirm-btn" class="btn-solid text-white text-sm px-4 py-2.5 rounded-full font-medium flex-1 flex items-center justify-center gap-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i> Geselecteerde verwijderen</button>
+      <button class="btn-ghost text-sm px-4 py-2.5 rounded-full" data-close="dedupe-review-modal">Annuleren</button>
     </div>
   </div>
 </div>
@@ -2260,6 +2279,7 @@ function bindExpenseForm(){
   bindExpenseCsvImport();
   bindPdfBankImport();
   bindExpenseEdit();
+  bindDuplicateFinder();
 }
 
 /* ============ UITGAVE BEWERKEN/VERWIJDEREN ============ */
@@ -2307,6 +2327,61 @@ function bindExpenseEdit(){
     expenseEditId = null;
     renderFinancePage2();
     showToast(ok ? 'Uitgave verwijderd' : 'Verwijderen mislukt!', ok?'trash-2':'alert-triangle');
+  });
+}
+
+/* ============ DUBBELS OPSPOREN (bv. na een import die per ongeluk 2x is gebeurd, of na
+   een cloud-sync die oude data terugzette bovenop een herimport) — groepeert op zelfde
+   bedrag + zelfde dag, en laat de gebruiker zelf kiezen wat écht een dubbel is vóór het
+   verwijderd wordt (nooit automatisch, want twee toevallig identieke bedragen op dezelfde
+   dag kunnen ook gewoon twee aparte, echte uitgaven zijn). */
+function findDuplicateExpenseGroups(){
+  const groups = {};
+  state.expenses.forEach(e=>{
+    const d = new Date(e.datum);
+    const key = e.bedrag.toFixed(2) + '_' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(e);
+  });
+  return Object.values(groups).filter(g=>g.length>1).sort((a,b)=> new Date(b[0].datum) - new Date(a[0].datum));
+}
+function openDedupeReview(){
+  const groups = findDuplicateExpenseGroups();
+  if(groups.length===0){ showToast('Geen mogelijke dubbels gevonden — alles ziet er uniek uit.','check'); return; }
+  const totalCandidates = groups.reduce((s,g)=>s+g.length-1,0);
+  const totalBedrag = groups.reduce((s,g)=> s + g.slice().sort((a,b)=>String(a.id).localeCompare(String(b.id))).slice(1).reduce((s2,e)=>s2+e.bedrag,0), 0);
+  setText('dedupe-summary', groups.length+' groep(en) met hetzelfde bedrag op dezelfde dag gevonden ('+totalCandidates+' kandidaat-dubbel(s), samen '+fmtEUR(totalBedrag)+'). Vink aan wat je wil verwijderen.');
+  setHTML('dedupe-list', groups.map((g,gi)=>{
+    const sortedGroup = [...g].sort((a,b)=> String(a.id).localeCompare(String(b.id)));
+    const rows = sortedGroup.map((e,i)=>`
+      <label class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 cursor-pointer">
+        <span class="flex items-center gap-3 min-w-0">
+          <input type="checkbox" data-dedupe-id="${e.id}" ${i===0?'':'checked'} class="w-4 h-4 accent-[var(--purple)] shrink-0" />
+          <i data-lucide="${CAT_ICONS[e.categorie]||'circle'}" class="w-4 h-4 text-[var(--purple-soft)] shrink-0"></i>
+          <span class="min-w-0"><p class="text-sm font-medium truncate">${e.omschrijving||e.categorie}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(e.datum))} · ${e.categorie}</p></span>
+        </span>
+        <span class="font-mono text-sm shrink-0" style="color:var(--danger)">− ${fmtEUR(e.bedrag)}</span>
+      </label>`).join('');
+    return `<div><p class="text-[11px] text-[var(--text-3)] mb-1.5 font-mono">GROEP ${gi+1} · ${fmtDayShort(new Date(g[0].datum))} · ${fmtEUR(g[0].bedrag)} × ${g.length}</p>
+      <div class="space-y-1.5">${rows}</div></div>`;
+  }).join(''));
+  openModal('dedupe-review-modal');
+  safeIcons();
+}
+function bindDuplicateFinder(){
+  const btn = $id('find-duplicates-btn');
+  if(btn) btn.addEventListener('click', openDedupeReview);
+  const confirmBtn = $id('dedupe-confirm-btn');
+  if(confirmBtn) confirmBtn.addEventListener('click', ()=>{
+    const idsToDelete = Array.from(document.querySelectorAll('#dedupe-list input[type=checkbox]:checked')).map(c=>c.dataset.dedupeId);
+    if(idsToDelete.length===0){ showToast('Niets aangevinkt om te verwijderen.','info'); closeModal('dedupe-review-modal'); return; }
+    const verwijderd = state.expenses.filter(e=>idsToDelete.includes(e.id));
+    const totaalVerwijderd = verwijderd.reduce((s,e)=>s+e.bedrag,0);
+    state.expenses = state.expenses.filter(e=>!idsToDelete.includes(e.id));
+    saveState(state);
+    closeModal('dedupe-review-modal');
+    renderFinancePage2();
+    showToast(idsToDelete.length+' dubbele uitgave(n) verwijderd ('+fmtEUR(totaalVerwijderd)+')', 'trash-2');
   });
 }
 
