@@ -687,27 +687,6 @@
       </div>
 
       <div class="panel p-6 mb-5">
-        <p class="text-xs font-mono text-[var(--text-2)] mb-1">HANDMATIG</p>
-        <h3 class="font-display text-lg font-semibold mb-1">Andere rekeningen</h3>
-        <p class="text-xs text-[var(--text-3)] mb-4">Voor alles wat niet in je vaste lasten staat — bv. een boete, een eenmalige herstelling, een factuur van de garage… Voeg toe, vink af zodra betaald.</p>
-        <div class="flex flex-wrap gap-2 mb-5">
-          <input id="custombill-naam" type="text" placeholder="Omschrijving (bv. Boete flitscamera)" class="flex-1 min-w-[160px] bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
-          <input id="custombill-bedrag" type="number" step="0.01" min="0" placeholder="Bedrag €" class="w-32 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
-          <button id="custombill-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div>
-            <p class="text-xs text-[var(--text-2)] mb-2 flex items-center gap-1.5"><i data-lucide="circle-dashed" class="w-3.5 h-3.5"></i> Nog te betalen</p>
-            <div id="custombills-unpaid" class="space-y-2"></div>
-          </div>
-          <div>
-            <p class="text-xs text-[var(--text-2)] mb-2 flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[var(--success)]"></i> Betaald</p>
-            <div id="custombills-paid" class="space-y-2"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel p-6 mb-5">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div><p class="text-xs font-mono text-[var(--text-2)] mb-1">UITGAVEN BIJHOUDEN</p><h3 class="font-display text-lg font-semibold">Dagelijkse uitgaven</h3></div>
           <div class="flex gap-2" id="expense-period-tabs">
@@ -787,6 +766,27 @@
           <div id="vaste-lasten-list" class="space-y-2 mb-6"></div>
           <h3 class="font-display text-lg font-semibold mb-3">Abonnementen — overzicht</h3>
           <div id="abonnementen-list" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <div class="panel p-6 mb-5">
+        <p class="text-xs font-mono text-[var(--text-2)] mb-1">HANDMATIG</p>
+        <h3 class="font-display text-lg font-semibold mb-1">Andere rekeningen</h3>
+        <p class="text-xs text-[var(--text-3)] mb-4">Voor alles wat niet in je vaste lasten staat — bv. een boete, een eenmalige herstelling, een factuur van de garage… Voeg toe, vink af zodra betaald.</p>
+        <div class="flex flex-wrap gap-2 mb-5">
+          <input id="custombill-naam" type="text" placeholder="Omschrijving (bv. Boete flitscamera)" class="flex-1 min-w-[160px] bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
+          <input id="custombill-bedrag" type="number" step="0.01" min="0" placeholder="Bedrag €" class="w-32 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+          <button id="custombill-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <p class="text-xs text-[var(--text-2)] mb-2 flex items-center gap-1.5"><i data-lucide="circle-dashed" class="w-3.5 h-3.5"></i> Nog te betalen</p>
+            <div id="custombills-unpaid" class="space-y-2"></div>
+          </div>
+          <div>
+            <p class="text-xs text-[var(--text-2)] mb-2 flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[var(--success)]"></i> Betaald</p>
+            <div id="custombills-paid" class="space-y-2"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -1343,6 +1343,42 @@
     <div class="flex gap-2">
       <button id="pdf-import-confirm-btn" class="btn-solid text-white text-sm px-4 py-2.5 rounded-full font-medium flex-1 flex items-center justify-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Importeren</button>
       <button class="btn-ghost text-sm px-4 py-2.5 rounded-full" data-close="pdf-import-modal">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="expense-edit-modal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-display text-lg font-semibold flex items-center gap-2"><i data-lucide="pencil" class="w-4 h-4 text-[var(--purple-soft)]"></i> Uitgave bewerken</h3>
+      <button class="modal-close" data-close="expense-edit-modal" aria-label="Sluiten"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-[var(--text-2)] mb-1 block">Omschrijving</label>
+        <input id="expedit-omschrijving" type="text" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-[var(--text-2)] mb-1 block">Bedrag €</label>
+          <input id="expedit-bedrag" type="number" step="0.01" min="0" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+        </div>
+        <div>
+          <label class="text-xs text-[var(--text-2)] mb-1 block">Datum</label>
+          <input id="expedit-datum" type="date" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-[var(--text-2)] mb-1 block">Categorie</label>
+        <select id="expedit-categorie" class="w-full bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
+          <option>Boodschappen</option><option>Vervoer</option><option>Vrije tijd</option><option>Horeca</option>
+          <option>Kleding</option><option>Gezondheid</option><option>Vaste kosten extra</option><option>Overig</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button id="expedit-save-btn" class="btn-solid text-white text-sm px-4 py-2.5 rounded-full font-medium flex-1 flex items-center justify-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Opslaan</button>
+      <button id="expedit-del-btn" class="btn-ghost text-sm px-4 py-2.5 rounded-full text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
     </div>
   </div>
 </div>
@@ -2140,18 +2176,23 @@ function renderExpenseOverview(){
           <span class="font-mono shrink-0">${fmtEUR(r.amt)} <span class="text-[var(--text-3)]">(${pct.toFixed(0)}%)</span></span></div>
         <div class="h-1.5 rounded-full bg-white/5 overflow-hidden"><div class="h-full rounded-full" style="width:${(r.amt/maxAmt)*100}%; background:linear-gradient(90deg,var(--purple),var(--cyan))"></div></div></div>`;
     }).join(''));
-  const sorted = [...state.expenses].sort((a,b)=> new Date(b.datum) - new Date(a.datum)).slice(0,25);
-  setHTML('expense-list', sorted.length===0 ? '<p class="text-sm text-[var(--text-2)]">Nog geen uitgaven geregistreerd.</p>' :
+  // BELANGRIJK: dit toont nu de uitgaven van de GESELECTEERDE periode (dag/week/maand/jaar) —
+  // voordien stond dit altijd vast op "de 25 meest recente uitgaven ooit", los van de gekozen tab,
+  // waardoor bv. "Maand" leek af te kappen zodra er 25+ nieuwere uitgaven in latere dagen bijkwamen.
+  const sorted = [...items].sort((a,b)=> new Date(b.datum) - new Date(a.datum));
+  setHTML('expense-list', sorted.length===0 ? '<p class="text-sm text-[var(--text-2)]">Nog geen uitgaven geregistreerd in deze periode.</p>' :
     sorted.map(e=>`
       <div class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5">
-        <div class="flex items-center gap-3"><i data-lucide="${CAT_ICONS[e.categorie]||'circle'}" class="w-4 h-4 text-[var(--purple-soft)]"></i>
-          <div><p class="text-sm font-medium">${e.omschrijving || e.categorie}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(e.datum))} · ${e.categorie}</p></div></div>
-        <div class="flex items-center gap-3"><span class="font-mono text-sm" style="color:var(--danger)">− ${fmtEUR(e.bedrag)}</span>
+        <div class="flex items-center gap-3 min-w-0"><i data-lucide="${CAT_ICONS[e.categorie]||'circle'}" class="w-4 h-4 text-[var(--purple-soft)] shrink-0"></i>
+          <div class="min-w-0"><p class="text-sm font-medium truncate">${e.omschrijving || e.categorie}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(e.datum))} · ${e.categorie}</p></div></div>
+        <div class="flex items-center gap-2 shrink-0"><span class="font-mono text-sm" style="color:var(--danger)">− ${fmtEUR(e.bedrag)}</span>
+          <button data-exp-edit="${e.id}" class="text-[var(--text-3)] hover:text-[var(--purple-soft)]"><i data-lucide="pencil" class="w-4 h-4"></i></button>
           <button data-exp-del="${e.id}" class="text-[var(--text-3)] hover:text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
       </div>`).join(''));
   document.querySelectorAll('[data-exp-del]').forEach(btn=> btn.addEventListener('click', ()=>{
     state.expenses = state.expenses.filter(e=>e.id!==btn.dataset.expDel); saveState(state); renderFinancePage2();
   }));
+  document.querySelectorAll('[data-exp-edit]').forEach(btn=> btn.addEventListener('click', ()=> openExpenseEditModal(btn.dataset.expEdit)));
   renderExpenseChart();
   const mStart = new Date(now.getFullYear(),now.getMonth(),1), mEnd = new Date(now.getFullYear(),now.getMonth()+1,1);
   const monthItems = expensesInRange(mStart, mEnd);
@@ -2203,6 +2244,55 @@ function bindExpenseForm(){
   });
   bindExpenseCsvImport();
   bindPdfBankImport();
+  bindExpenseEdit();
+}
+
+/* ============ UITGAVE BEWERKEN/VERWIJDEREN ============ */
+let expenseEditId = null;
+function openExpenseEditModal(id){
+  const e = state.expenses.find(x=> x.id === id);
+  if(!e) return;
+  expenseEditId = id;
+  const omEl = $id('expedit-omschrijving'), bedEl = $id('expedit-bedrag'), datEl = $id('expedit-datum'), catEl = $id('expedit-categorie');
+  if(omEl) omEl.value = e.omschrijving || '';
+  if(bedEl) bedEl.value = e.bedrag;
+  if(datEl){ const d = new Date(e.datum); datEl.value = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0,10); }
+  if(catEl) catEl.value = e.categorie || 'Overig';
+  openModal('expense-edit-modal');
+  safeIcons();
+}
+function bindExpenseEdit(){
+  const saveBtn = $id('expedit-save-btn');
+  if(saveBtn) saveBtn.addEventListener('click', ()=>{
+    if(!expenseEditId) return;
+    const e = state.expenses.find(x=> x.id === expenseEditId);
+    if(!e){ closeModal('expense-edit-modal'); return; }
+    const omEl = $id('expedit-omschrijving'), bedEl = $id('expedit-bedrag'), datEl = $id('expedit-datum'), catEl = $id('expedit-categorie');
+    const bedrag = parseFloat(bedEl.value);
+    if(!bedrag || bedrag<=0){ showToast('Vul een geldig bedrag in','alert-circle'); return; }
+    e.omschrijving = omEl.value.trim();
+    e.bedrag = bedrag;
+    e.categorie = catEl.value;
+    if(datEl.value){
+      const [y,m,d] = datEl.value.split('-').map(Number);
+      e.datum = new Date(y, m-1, d).toISOString();
+    }
+    const ok = saveState(state);
+    closeModal('expense-edit-modal');
+    expenseEditId = null;
+    renderFinancePage2();
+    showToast(ok ? 'Uitgave bijgewerkt ✓' : 'Opslaan mislukt!', ok?'check':'alert-triangle');
+  });
+  const delBtn = $id('expedit-del-btn');
+  if(delBtn) delBtn.addEventListener('click', ()=>{
+    if(!expenseEditId) return;
+    state.expenses = state.expenses.filter(x=> x.id !== expenseEditId);
+    const ok = saveState(state);
+    closeModal('expense-edit-modal');
+    expenseEditId = null;
+    renderFinancePage2();
+    showToast(ok ? 'Uitgave verwijderd' : 'Verwijderen mislukt!', ok?'trash-2':'alert-triangle');
+  });
 }
 
 /* ============ CSV-IMPORT UITGAVEN (bv. transactie-export van Argenta) ============
