@@ -755,20 +755,21 @@
           <button id="exp-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
         </div>
         <div class="flex flex-wrap items-center gap-2 mb-4">
+          <button id="exp-pdf-import-btn" class="btn-solid text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> Importeer PDF-uittreksel van je bank</button>
+          <input id="exp-pdf-file" type="file" accept=".pdf,application/pdf" class="hidden" />
           <button id="exp-csv-import-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> Importeer CSV van je bank</button>
           <input id="exp-csv-file" type="file" accept=".csv,text/csv" class="hidden" />
           <button id="argenta-howto-toggle" type="button" class="text-[11px] text-[var(--purple-soft)] underline underline-offset-2 flex items-center gap-1"><i data-lucide="help-circle" class="w-3 h-3"></i> Hoe download ik dit bij Argenta?</button>
-          <span class="text-[11px] text-[var(--text-3)] basis-full">Er kan geen automatische live-koppeling met je bank gemaakt worden vanuit dit dashboard (geen bank staat dat toe zonder officiële erkenning) — CSV-import is de dichtstbijzijnde werkbare oplossing. Enkel uitgaande bedragen worden toegevoegd, als "Overig".</span>
+          <span class="text-[11px] text-[var(--text-3)] basis-full">Upload rechtstreeks je PDF-rekeninguittreksel (zoals gedownload via Argenta Internetbankieren) — geen omweg via Excel/CSV meer nodig. Alles wordt eerst getoond ter controle vóór het echt geïmporteerd wordt. Enkel uitgaande bedragen komen bij je uitgaven; inkomende bedragen verschijnen apart bij "Inkomsten" hieronder. Er kan geen automatische live-koppeling met je bank gemaakt worden vanuit dit dashboard (geen bank staat dat toe zonder officiële erkenning) — dit is de dichtstbijzijnde werkbare oplossing.</span>
           <div id="argenta-howto-body" class="hidden basis-full text-[11px] text-[var(--text-2)] bg-white/[0.03] border border-white/10 rounded-xl p-3 mt-1 leading-relaxed">
-            Argenta heeft geen aparte "CSV"-knop in de app zelf — het gaat via Internetbankieren (browser, niet de app):<br/>
-            1. Log in op Argenta Internetbankieren (via <span class="font-mono">argenta.be</span>, niet de app) en open de gewenste rekening.<br/>
-            2. Gebruik "Vind een transactie op" om de gewenste periode te zoeken (bv. deze maand).<br/>
-            3. Klik op "zoeken en downloaden" → je krijgt een Excel-bestand (.xlsx) van de transacties.<br/>
-            4. Open dat bestand en kies Bestand → Opslaan als → CSV (met puntkomma-scheidingsteken).<br/>
-            5. Kom terug hier en klik op "Importeer CSV van je bank" om dat CSV-bestand te kiezen.
+            Zo download je het PDF-uittreksel bij Argenta: log in op Argenta Internetbankieren (via <span class="font-mono">argenta.be</span> of de app) → open de gewenste rekening → "Rekeninguittreksels" → download als PDF. Dat PDF-bestand kies je hierboven bij "Importeer PDF-uittreksel van je bank". (Wil je liever CSV/Excel: dat kan ook via "Vind een transactie op" → "zoeken en downloaden" → opslaan als CSV.)
           </div>
         </div>
         <div id="expense-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
+        <div class="mt-5 pt-4 border-t border-white/10">
+          <p class="text-xs font-mono text-[var(--text-2)] mb-2 flex items-center gap-1.5"><i data-lucide="arrow-down-to-line" class="w-3.5 h-3.5 text-[var(--success)]"></i> INKOMSTEN (uit PDF-import, informatief — telt niet mee in uitgaven-totalen)</p>
+          <div id="income-list" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></div>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-5">
@@ -1330,6 +1331,25 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="pdf-import-modal">
+  <div class="modal-box" style="max-width:640px;">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display text-lg font-semibold flex items-center gap-2"><i data-lucide="landmark" class="w-4 h-4 text-[var(--purple-soft)]"></i> PDF-uittreksel controleren</h3>
+      <button class="modal-close" data-close="pdf-import-modal" aria-label="Sluiten"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <p id="pdf-import-summary" class="text-xs text-[var(--text-2)] mb-3">—</p>
+    <div class="flex gap-2 mb-3">
+      <button id="pdf-import-select-all" class="btn-ghost text-[11px] px-3 py-1 rounded-full">Alles aanvinken</button>
+      <button id="pdf-import-select-none" class="btn-ghost text-[11px] px-3 py-1 rounded-full">Alles uitvinken</button>
+    </div>
+    <div id="pdf-import-list" class="space-y-1.5 max-h-[360px] overflow-y-auto pr-1 mb-4"></div>
+    <div class="flex gap-2">
+      <button id="pdf-import-confirm-btn" class="btn-solid text-white text-sm px-4 py-2.5 rounded-full font-medium flex-1 flex items-center justify-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Importeren</button>
+      <button class="btn-ghost text-sm px-4 py-2.5 rounded-full" data-close="pdf-import-modal">Annuleren</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============ ERROR VISIBILITY ============ */
 function showError(msg){ const b = document.getElementById('error-banner'); if(!b) return; b.style.display='block'; b.textContent = 'Command Deck kreeg een fout te verwerken: ' + msg; }
@@ -1451,6 +1471,7 @@ let state = loadState();
 if(!state.done) state.done = {};
 if(!state.extra) state.extra = [];
 if(!state.expenses) state.expenses = [];
+if(!state.inkomsten) state.inkomsten = [];
 if(!state.notes) state.notes = [];
 if(!state.sales) state.sales = [];
 if(!state.groceries) state.groceries = [];
@@ -2119,7 +2140,7 @@ function renderExpenseOverview(){
       <div class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5">
         <div class="flex items-center gap-3"><i data-lucide="${CAT_ICONS[e.categorie]||'circle'}" class="w-4 h-4 text-[var(--purple-soft)]"></i>
           <div><p class="text-sm font-medium">${e.omschrijving || e.categorie}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(e.datum))} · ${e.categorie}</p></div></div>
-        <div class="flex items-center gap-3"><span class="font-mono text-sm">${fmtEUR(e.bedrag)}</span>
+        <div class="flex items-center gap-3"><span class="font-mono text-sm" style="color:var(--danger)">− ${fmtEUR(e.bedrag)}</span>
           <button data-exp-del="${e.id}" class="text-[var(--text-3)] hover:text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
       </div>`).join(''));
   document.querySelectorAll('[data-exp-del]').forEach(btn=> btn.addEventListener('click', ()=>{
@@ -2132,7 +2153,7 @@ function renderExpenseOverview(){
   setText('sum-expenses-count', monthItems.length + ' geregistreerde uitgaven');
   safeIcons();
 }
-function renderFinancePage2(){ renderFinancePage(); renderUpcomingBills(); renderExpenseOverview(); renderBudgetProgress(); renderCustomBills(); renderSpaardoel(); }
+function renderFinancePage2(){ renderFinancePage(); renderUpcomingBills(); renderExpenseOverview(); renderBudgetProgress(); renderCustomBills(); renderSpaardoel(); renderIncomeList(); }
 function bindExpenseForm(){
   const dateInput = $id('exp-datum');
   if(dateInput && !dateInput.value){ const n=new Date(); dateInput.value = n.toISOString().slice(0,10); }
@@ -2156,6 +2177,7 @@ function bindExpenseForm(){
     showToast(ok ? 'Uitgave opgeslagen ✓' : 'Opslaan mislukt!', ok?'receipt':'alert-triangle');
   });
   bindExpenseCsvImport();
+  bindPdfBankImport();
 }
 
 /* ============ CSV-IMPORT UITGAVEN (bv. transactie-export van Argenta) ============
@@ -2252,6 +2274,95 @@ function bindExpenseCsvImport(){
     }
     fileInput.value = '';
   });
+}
+
+/* ============ INKOMSTEN (enkel gevoed via PDF-import — puur informatief, telt niet mee in budget) ============ */
+function renderIncomeList(){
+  const el = $id('income-list'); if(!el) return;
+  const sorted = [...state.inkomsten].sort((a,b)=> new Date(b.datum) - new Date(a.datum)).slice(0,25);
+  setHTML('income-list', sorted.length===0 ? '<p class="text-sm text-[var(--text-2)]">Nog geen inkomsten geïmporteerd.</p>' :
+    sorted.map(i=>`
+      <div class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5">
+        <div class="flex items-center gap-3"><i data-lucide="arrow-down-to-line" class="w-4 h-4" style="color:var(--success)"></i>
+          <div><p class="text-sm font-medium">${i.omschrijving}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(i.datum))}</p></div></div>
+        <div class="flex items-center gap-3"><span class="font-mono text-sm" style="color:var(--success)">+ ${fmtEUR(i.bedrag)}</span>
+          <button data-income-del="${i.id}" class="text-[var(--text-3)] hover:text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
+      </div>`).join(''));
+  document.querySelectorAll('[data-income-del]').forEach(btn=> btn.addEventListener('click', ()=>{
+    state.inkomsten = state.inkomsten.filter(i=>i.id!==btn.dataset.incomeDel); saveState(state); renderIncomeList();
+  }));
+  safeIcons();
+}
+
+/* ============ PDF-UITTREKSEL IMPORT (rechtstreeks een bank-PDF uploaden, geen CSV-omweg meer) ============ */
+let pdfImportParsed = [];
+function bindPdfBankImport(){
+  const btn = $id('exp-pdf-import-btn'), fileInput = $id('exp-pdf-file');
+  if(!btn || !fileInput) return;
+  btn.addEventListener('click', ()=> fileInput.click());
+  fileInput.addEventListener('change', async ()=>{
+    const file = fileInput.files[0]; if(!file) return;
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5"></i> PDF wordt gelezen…'; btn.disabled = true; safeIcons();
+    try{
+      const lines = await extractPdfLines(file);
+      const parsed = parseBankStatementLines(lines).sort((a,b)=> a.datum - b.datum);
+      if(parsed.length===0){ showToast('Geen transacties herkend in dit PDF-bestand — is het een Argenta-rekeninguittreksel?','alert-circle'); }
+      else openPdfImportReview(parsed);
+    } catch(e){
+      showToast('Kon PDF niet verwerken: '+e.message, 'alert-triangle');
+    }
+    btn.innerHTML = origHTML; btn.disabled = false; safeIcons();
+    fileInput.value = '';
+  });
+  $id('pdf-import-select-all').addEventListener('click', ()=>{
+    document.querySelectorAll('#pdf-import-list input[type=checkbox]').forEach(c=> c.checked = true);
+  });
+  $id('pdf-import-select-none').addEventListener('click', ()=>{
+    document.querySelectorAll('#pdf-import-list input[type=checkbox]').forEach(c=> c.checked = false);
+  });
+  $id('pdf-import-confirm-btn').addEventListener('click', (e)=>{
+    let toegevoegdUit=0, toegevoegdIn=0, overgeslagen=0;
+    document.querySelectorAll('#pdf-import-list input[type=checkbox]:checked').forEach(chk=>{
+      const t = pdfImportParsed[+chk.dataset.pdfTxIdx]; if(!t) return;
+      if(t.bedrag < 0){
+        const bedragAbs = Math.abs(t.bedrag);
+        const dupe = state.expenses.some(x=> Math.abs(x.bedrag-bedragAbs)<0.005 && sameDay(new Date(x.datum), t.datum) && (x.omschrijving||'')===(t.omschrijving||''));
+        if(dupe){ overgeslagen++; return; }
+        state.expenses.push({ id:'exp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:bedragAbs, categorie:'Overig', omschrijving:t.omschrijving||'Bank import', datum:t.datum.toISOString() });
+        toegevoegdUit++;
+      } else {
+        const dupe = state.inkomsten.some(x=> Math.abs(x.bedrag-t.bedrag)<0.005 && sameDay(new Date(x.datum), t.datum) && (x.omschrijving||'')===(t.omschrijving||''));
+        if(dupe){ overgeslagen++; return; }
+        state.inkomsten.push({ id:'inc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:t.bedrag, omschrijving:t.omschrijving||'Bank import', datum:t.datum.toISOString() });
+        toegevoegdIn++;
+      }
+    });
+    saveState(state);
+    renderExpenseOverview(); renderBudgetProgress(); renderIncomeList();
+    closeModal('pdf-import-modal');
+    showToast(toegevoegdUit+' uitgave(n) en '+toegevoegdIn+' inkomst(en) geïmporteerd'+(overgeslagen?', '+overgeslagen+' dubbels overgeslagen':''), 'landmark');
+    if(toegevoegdUit>0 || toegevoegdIn>0) confettiFromEvent(e);
+  });
+}
+function openPdfImportReview(parsed){
+  pdfImportParsed = parsed;
+  const uitgaven = parsed.filter(t=>t.bedrag<0), inkomsten = parsed.filter(t=>t.bedrag>=0);
+  const totaalUit = uitgaven.reduce((s,t)=>s+Math.abs(t.bedrag),0);
+  const totaalIn = inkomsten.reduce((s,t)=>s+t.bedrag,0);
+  const eersteDatum = fmtDayShort(parsed[0].datum), laatsteDatum = fmtDayShort(parsed[parsed.length-1].datum);
+  setText('pdf-import-summary', `${parsed.length} transacties gevonden (${eersteDatum} – ${laatsteDatum}): ${uitgaven.length} uitgaven (${fmtEUR(totaalUit)}), ${inkomsten.length} inkomsten (${fmtEUR(totaalIn)}). Vink aan wat je wil importeren.`);
+  setHTML('pdf-import-list', parsed.map((t,i)=>{
+    const isUit = t.bedrag < 0;
+    const kleur = isUit ? 'var(--danger)' : 'var(--success)';
+    const teken = isUit ? '−' : '+';
+    return `<label class="flex items-center gap-2.5 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-sm cursor-pointer">
+      <input type="checkbox" checked data-pdf-tx-idx="${i}" class="shrink-0" />
+      <span class="flex-1 min-w-0"><span class="block truncate">${(t.omschrijving||'').replace(/</g,'&lt;')}</span><span class="text-[11px] text-[var(--text-3)] font-mono">${fmtDayShort(t.datum)}</span></span>
+      <span class="font-mono text-sm shrink-0" style="color:${kleur}">${teken} ${fmtEUR(Math.abs(t.bedrag))}</span>
+    </label>`;
+  }).join(''));
+  openModal('pdf-import-modal');
 }
 
 /* ============ MAANDKALENDER (incl. taken en feestdagen) ============ */
@@ -4274,6 +4385,97 @@ async function extractPdfText(file){
     text += content.items.map(it=>it.str).join(' ') + '\n';
   }
   return text.trim();
+}
+/* Lijn-per-lijn PDF-tekst uitlezen — nodig voor bankafschriften waar de regel-structuur (elke
+   transactie = vaste kop + detailregels) essentieel is om correct te kunnen parsen. pdf.js geeft
+   losse tekst-items met x/y-positie (item.transform[4]=x, [5]=y); door items met (ongeveer)
+   dezelfde y te groeperen en op x te sorteren, reconstrueren we dezelfde regels als in de PDF. */
+async function extractPdfLines(file){
+  await ensurePdfJs();
+  const buf = await file.arrayBuffer();
+  const doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  const lines = [];
+  for(let p=1; p<=doc.numPages; p++){
+    const page = await doc.getPage(p);
+    const content = await page.getTextContent();
+    const items = content.items.filter(it=> it.str && it.str.trim());
+    items.sort((a,b)=> b.transform[5] - a.transform[5]); // van boven naar onder
+    const rows = [];
+    const TOL = 2.5;
+    items.forEach(it=>{
+      const y = it.transform[5], x = it.transform[4];
+      let row = rows.find(r=> Math.abs(r.y - y) <= TOL);
+      if(!row){ row = { y, items:[] }; rows.push(row); }
+      row.items.push({ x, str: it.str });
+    });
+    rows.forEach(r=>{
+      r.items.sort((a,b)=> a.x - b.x);
+      const line = r.items.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim();
+      if(line) lines.push(line);
+    });
+  }
+  return lines;
+}
+/* ============ PDF-UITTREKSEL BANK (Argenta) → transacties ============
+   Elke transactie in een Argenta-PDF-uittreksel start met een regel:
+     "<volgnr> <dd-mm-jjjj> <omschrijvingstype...> <dd-mm-jjjj (valutadatum)> <±bedrag>"
+   gevolgd door detailregels (bv. "Naam verkooppunt: ...", "Naar/Van" + naam, "Extra informatie: ...").
+   Getest en geverifieerd tegen een echt Argenta-uittreksel (155 pagina's, sept 2025 – aug 2026) — het
+   netto-loonbedrag uit de PDF kwam exact overeen met de eerder door de gebruiker opgegeven echte
+   loonbrief-cijfers, wat de betrouwbaarheid van deze parser bevestigt. */
+const PDF_BANK_JUNK_LINES = [
+  /^ARGENTA SPAARBANK NV$/, /^SHAUN MERRIMAN$/, /^Silver \d{2}-\d{2}-\d{4}$/,
+  /^BE\d{2}[\d ]+p\.\s*\d+\/\d+$/, /^Nr\. Datum Omschrijving Valutadatum Bedrag in EUR$/,
+  /^Argenta Spaarbank nv$/, /^info@argenta\.be/, /^argenta\.be RPR/, /^Saldo op \d{2}-\d{2}-\d{4}/,
+];
+const PDF_TX_START_RE = /^(\d+)\s+(\d{2}-\d{2}-\d{4})\s+(.+?)\s+(\d{2}-\d{2}-\d{4})\s+([+-][\d.,]+)$/;
+const PDF_FIELD_LABEL_RE = /^[A-Za-zÀ-ÿ ]+:\s/;
+function pdfJoinExtraInfo(detail){
+  let out = [], capturing = false;
+  for(const d of detail){
+    if(d.startsWith('Extra informatie:')){ capturing = true; out.push(d.split(':').slice(1).join(':').trim()); continue; }
+    if(capturing){
+      if(PDF_FIELD_LABEL_RE.test(d) || /^\d{4,}/.test(d)) break;
+      out.push(d.trim());
+    }
+  }
+  return out.join(' ');
+}
+function pdfBestLabel(type, detail){
+  for(const d of detail){ if(d.startsWith('Naam verkooppunt:')) return d.split(':').slice(1).join(':').trim(); }
+  const extra = pdfJoinExtraInfo(detail);
+  if(extra.includes('|.|')){ const m = extra.split('|.|')[0].trim(); if(m) return m; }
+  for(const d of detail){ if(d.startsWith('Gegevens verkooppunt:')) return d.split(':').slice(1).join(':').trim(); }
+  for(let i=0;i<detail.length;i++){
+    const d = detail[i];
+    if(d==='Naar' || d==='Van' || d.startsWith('Naar ') || d.startsWith('Van ')){
+      const cand = detail[i+1];
+      if(cand && !PDF_FIELD_LABEL_RE.test(cand)) return cand.trim();
+      return d.trim();
+    }
+  }
+  return type;
+}
+function parseBankStatementLines(lines){
+  const clean = lines.filter(l=> !PDF_BANK_JUNK_LINES.some(re=> re.test(l)));
+  const blocks = [];
+  let current = null;
+  clean.forEach(l=>{
+    const m = PDF_TX_START_RE.exec(l);
+    if(m){
+      if(current) blocks.push(current);
+      current = { nr:m[1], datumRaw:m[2], type:m[3], bedragRaw:m[5], detail:[] };
+    } else if(current){
+      current.detail.push(l);
+    }
+  });
+  if(current) blocks.push(current);
+  return blocks.map(b=>{
+    const datum = parseCsvDatum(b.datumRaw);
+    const bedrag = parseCsvBedrag(b.bedragRaw);
+    const omschrijving = pdfBestLabel(b.type, b.detail);
+    return { datum, bedrag, omschrijving, type:b.type };
+  }).filter(t=> t.datum && t.bedrag!=null);
 }
 /* Lokale opmaak zonder AI-key: nette hoofdletters, lege lijnen weg, bullets consistent */
 function localStructureRecipe(ingredientenRaw, instructiesRaw){
