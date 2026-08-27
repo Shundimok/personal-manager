@@ -2332,37 +2332,67 @@ function bindExpenseEdit(){
 
 /* ============ DUBBELS OPSPOREN (bv. na een import die per ongeluk 2x is gebeurd, of na
    een cloud-sync die oude data terugzette bovenop een herimport) — groepeert op zelfde
-   bedrag + zelfde dag, en laat de gebruiker zelf kiezen wat écht een dubbel is vóór het
-   verwijderd wordt (nooit automatisch, want twee toevallig identieke bedragen op dezelfde
-   dag kunnen ook gewoon twee aparte, echte uitgaven zijn). */
+   bedrag binnen een paar dagen van elkaar (niet strikt dezelfde kalenderdag: bij een
+   herimport via een ander pad — CSV vs PDF, of een dag-verschuiving door tijdzone/valuta-
+   vs boekingsdatum — kan exact dezelfde transactie 1-2 dagen verschuiven). De gebruiker
+   kiest zelf wat écht een dubbel is vóór er iets verwijderd wordt: binnen zo'n groep wordt
+   enkel voorgevinkt wat ook een (bijna) identieke omschrijving heeft — bij twijfel (zelfde
+   bedrag, andere naam) laten we het onaangevinkt staan, want dat kunnen ook gewoon twee
+   aparte, echte uitgaven zijn. */
 function findDuplicateExpenseGroups(){
-  const groups = {};
+  const DAG_MARGE = 3; // max aantal dagen verschil om nog als mogelijke dezelfde transactie te tellen
+  const byBedrag = {};
   state.expenses.forEach(e=>{
-    const d = new Date(e.datum);
-    const key = e.bedrag.toFixed(2) + '_' + d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
-    if(!groups[key]) groups[key] = [];
-    groups[key].push(e);
+    const key = e.bedrag.toFixed(2);
+    if(!byBedrag[key]) byBedrag[key] = [];
+    byBedrag[key].push(e);
   });
-  return Object.values(groups).filter(g=>g.length>1).sort((a,b)=> new Date(b[0].datum) - new Date(a[0].datum));
+  const groups = [];
+  Object.values(byBedrag).forEach(list=>{
+    if(list.length<2) return;
+    const sorted = [...list].sort((a,b)=> new Date(a.datum) - new Date(b.datum));
+    let cluster = [sorted[0]];
+    for(let i=1;i<sorted.length;i++){
+      const vorige = new Date(cluster[cluster.length-1].datum), huidige = new Date(sorted[i].datum);
+      const verschilDagen = Math.abs((huidige - vorige) / 86400000);
+      if(verschilDagen <= DAG_MARGE){ cluster.push(sorted[i]); }
+      else { if(cluster.length>1) groups.push(cluster); cluster = [sorted[i]]; }
+    }
+    if(cluster.length>1) groups.push(cluster);
+  });
+  return groups.sort((a,b)=> new Date(b[0].datum) - new Date(a[0].datum));
 }
+function omschrijvingKey(s){ return (s||'').trim().toLowerCase(); }
 function openDedupeReview(){
   const groups = findDuplicateExpenseGroups();
   if(groups.length===0){ showToast('Geen mogelijke dubbels gevonden — alles ziet er uniek uit.','check'); return; }
-  const totalCandidates = groups.reduce((s,g)=>s+g.length-1,0);
-  const totalBedrag = groups.reduce((s,g)=> s + g.slice().sort((a,b)=>String(a.id).localeCompare(String(b.id))).slice(1).reduce((s2,e)=>s2+e.bedrag,0), 0);
-  setText('dedupe-summary', groups.length+' groep(en) met hetzelfde bedrag op dezelfde dag gevonden ('+totalCandidates+' kandidaat-dubbel(s), samen '+fmtEUR(totalBedrag)+'). Vink aan wat je wil verwijderen.');
+  // Binnen elke groep (zelfde bedrag, dicht bij elkaar in tijd) enkel voorafvinken wat ook
+  // een gelijke omschrijving deelt met minstens 1 ander item in diezelfde groep — dat is het
+  // sterkste signaal voor een écht dubbel; de rest tonen we wel, maar laten we onaangevinkt.
+  let totalCandidates = 0, totalBedrag = 0;
+  const checkedIds = new Set();
+  groups.forEach(g=>{
+    const byOmschrijving = {};
+    g.forEach(e=>{ const k = omschrijvingKey(e.omschrijving); if(!byOmschrijving[k]) byOmschrijving[k] = []; byOmschrijving[k].push(e); });
+    Object.values(byOmschrijving).forEach(sub=>{
+      if(sub.length<2) return;
+      const sortedSub = [...sub].sort((a,b)=> String(a.id).localeCompare(String(b.id)));
+      sortedSub.slice(1).forEach(e=>{ checkedIds.add(e.id); totalCandidates++; totalBedrag += e.bedrag; });
+    });
+  });
+  setText('dedupe-summary', groups.length+' groep(en) met hetzelfde bedrag gevonden (binnen enkele dagen van elkaar)'+(totalCandidates>0?', waarvan '+totalCandidates+' met een gelijke naam voorgevinkt staan (samen '+fmtEUR(totalBedrag)+')':'')+'. Controleer en vink aan wat je wil verwijderen.');
   setHTML('dedupe-list', groups.map((g,gi)=>{
-    const sortedGroup = [...g].sort((a,b)=> String(a.id).localeCompare(String(b.id)));
-    const rows = sortedGroup.map((e,i)=>`
+    const sortedGroup = [...g].sort((a,b)=> new Date(a.datum) - new Date(b.datum));
+    const rows = sortedGroup.map(e=>`
       <label class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5 cursor-pointer">
         <span class="flex items-center gap-3 min-w-0">
-          <input type="checkbox" data-dedupe-id="${e.id}" ${i===0?'':'checked'} class="w-4 h-4 accent-[var(--purple)] shrink-0" />
+          <input type="checkbox" data-dedupe-id="${e.id}" ${checkedIds.has(e.id)?'checked':''} class="w-4 h-4 accent-[var(--purple)] shrink-0" />
           <i data-lucide="${CAT_ICONS[e.categorie]||'circle'}" class="w-4 h-4 text-[var(--purple-soft)] shrink-0"></i>
           <span class="min-w-0"><p class="text-sm font-medium truncate">${e.omschrijving||e.categorie}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(e.datum))} · ${e.categorie}</p></span>
         </span>
         <span class="font-mono text-sm shrink-0" style="color:var(--danger)">− ${fmtEUR(e.bedrag)}</span>
       </label>`).join('');
-    return `<div><p class="text-[11px] text-[var(--text-3)] mb-1.5 font-mono">GROEP ${gi+1} · ${fmtDayShort(new Date(g[0].datum))} · ${fmtEUR(g[0].bedrag)} × ${g.length}</p>
+    return `<div><p class="text-[11px] text-[var(--text-3)] mb-1.5 font-mono">GROEP ${gi+1} · ${fmtEUR(g[0].bedrag)} × ${g.length}</p>
       <div class="space-y-1.5">${rows}</div></div>`;
   }).join(''));
   openModal('dedupe-review-modal');
