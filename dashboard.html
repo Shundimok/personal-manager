@@ -720,31 +720,32 @@
           <div id="expense-chart" class="flex items-end gap-2 h-24"></div>
         </div>
 
-        <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+          <p id="expense-list-title" class="text-xs font-mono text-[var(--text-2)]">ALLE UITGAVEN &amp; INKOMSTEN</p>
+          <button id="expense-list-filter-clear" type="button" class="hidden text-[11px] text-[var(--purple-soft)] underline underline-offset-2 items-center gap-1"><i data-lucide="x" class="w-3 h-3"></i> Filter wissen</button>
+        </div>
+        <div id="expense-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1 mb-6"></div>
+
+        <div class="flex flex-wrap gap-2 mb-3 pt-4 border-t border-white/10">
           <input id="exp-bedrag" type="number" step="0.01" min="0" placeholder="Bedrag €" class="w-28 bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
           <select id="exp-categorie" class="bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition">
             <option>Boodschappen</option><option>Vervoer</option><option>Vrije tijd</option><option>Horeca</option>
-            <option>Kleding</option><option>Gezondheid</option><option>Vaste kosten extra</option><option>Overig</option>
+            <option>Kleding</option><option>Gezondheid</option><option>Vaste kosten extra</option><option>Sparen</option><option>Overig</option>
           </select>
           <input id="exp-omschrijving" type="text" placeholder="Omschrijving (optioneel)" class="flex-1 min-w-[140px] bg-white/[0.03] border border-white/10 rounded-full px-4 py-2 text-sm outline-none focus:border-[var(--purple)] transition" />
           <input id="exp-datum" type="date" class="bg-white/[0.03] border border-white/10 rounded-full px-3 py-2 text-sm outline-none focus:border-[var(--purple)] transition font-mono" />
           <button id="exp-add-btn" class="btn-solid text-white text-sm px-4 py-2 rounded-full font-medium flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i> Toevoegen</button>
         </div>
-        <div class="flex flex-wrap items-center gap-2 mb-4">
+        <div class="flex flex-wrap items-center gap-2">
           <button id="exp-pdf-import-btn" class="btn-solid text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> Importeer PDF-uittreksel van je bank</button>
           <input id="exp-pdf-file" type="file" accept=".pdf,application/pdf" class="hidden" />
           <button id="exp-csv-import-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5"><i data-lucide="upload" class="w-3.5 h-3.5"></i> Importeer CSV van je bank</button>
           <input id="exp-csv-file" type="file" accept=".csv,text/csv" class="hidden" />
           <button id="argenta-howto-toggle" type="button" class="text-[11px] text-[var(--purple-soft)] underline underline-offset-2 flex items-center gap-1"><i data-lucide="help-circle" class="w-3 h-3"></i> Hoe download ik dit bij Argenta?</button>
-          <span class="text-[11px] text-[var(--text-3)] basis-full">Upload rechtstreeks je PDF-rekeninguittreksel (zoals gedownload via Argenta Internetbankieren) — geen omweg via Excel/CSV meer nodig. Alles wordt eerst getoond ter controle vóór het echt geïmporteerd wordt. Enkel uitgaande bedragen komen bij je uitgaven; inkomende bedragen verschijnen apart bij "Inkomsten" hieronder. Er kan geen automatische live-koppeling met je bank gemaakt worden vanuit dit dashboard (geen bank staat dat toe zonder officiële erkenning) — dit is de dichtstbijzijnde werkbare oplossing.</span>
+          <span class="text-[11px] text-[var(--text-3)] basis-full">Upload rechtstreeks je PDF-rekeninguittreksel (zoals gedownload via Argenta Internetbankieren) — geen omweg via Excel/CSV meer nodig. Alles wordt eerst getoond ter controle vóór het echt geïmporteerd wordt. Uitgaande bedragen komen bij je uitgaven; inkomende bedragen krijgen de categorie "Inkomend" en staan groen met een + hierboven tussen je uitgaven, maar tellen niet mee in de uitgaven-totalen. Er kan geen automatische live-koppeling met je bank gemaakt worden vanuit dit dashboard (geen bank staat dat toe zonder officiële erkenning) — dit is de dichtstbijzijnde werkbare oplossing.</span>
           <div id="argenta-howto-body" class="hidden basis-full text-[11px] text-[var(--text-2)] bg-white/[0.03] border border-white/10 rounded-xl p-3 mt-1 leading-relaxed">
             Zo download je het PDF-uittreksel bij Argenta: log in op Argenta Internetbankieren (via <span class="font-mono">argenta.be</span> of de app) → open de gewenste rekening → "Rekeninguittreksels" → download als PDF. Dat PDF-bestand kies je hierboven bij "Importeer PDF-uittreksel van je bank". (Wil je liever CSV/Excel: dat kan ook via "Vind een transactie op" → "zoeken en downloaden" → opslaan als CSV.)
           </div>
-        </div>
-        <div id="expense-list" class="space-y-2 max-h-[220px] overflow-y-auto pr-1"></div>
-        <div class="mt-5 pt-4 border-t border-white/10">
-          <p class="text-xs font-mono text-[var(--text-2)] mb-2 flex items-center gap-1.5"><i data-lucide="arrow-down-to-line" class="w-3.5 h-3.5 text-[var(--success)]"></i> INKOMSTEN (uit PDF-import, informatief — telt niet mee in uitgaven-totalen)</p>
-          <div id="income-list" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></div>
         </div>
       </div>
 
@@ -2020,12 +2021,13 @@ function renderBudgetProgress(){
   const totaalVerwacht = alleVast.reduce((s,i)=>s+i.bedrag,0);
   const pct = totaalVerwacht>0 ? Math.min(100, (vervallenBedrag/totaalVerwacht)*100) : 0;
 
+  const periodeLabel = '1 ' + maandNamen[now.getMonth()] + ' – ' + now.getDate() + ' ' + maandNamen[now.getMonth()];
   animateNumber('maand-al-uitgegeven', totaalAlUitgegeven, v=>fmtEUR(v));
-  setText('maand-al-detail', vervallen.length+' vaste lasten/abonnementen vervallen + dagelijkse uitgaven');
+  setText('maand-al-detail', vervallen.length+' vaste lasten/abonnementen vervallen + dagelijkse uitgaven ('+periodeLabel+')');
   animateNumber('maand-nog-over', nogTeVervallenBedrag, v=>fmtEUR(v));
   setText('maand-nog-detail', nogTeVervallen.length+' van '+alleVast.length+' nog te vervallen deze maand');
   animateNumber('maand-dagelijks', dagelijksTotaal, v=>fmtEUR(v));
-  setText('maand-dagelijks-detail', expensesInRange(mStart, mEnd).length+' gelogde uitgave(n) deze maand');
+  setText('maand-dagelijks-detail', expensesInRange(mStart, mEnd).length+' gelogde uitgave(n) deze maand ('+periodeLabel+')');
   const ring = $id('maand-ring');
   if(ring){ const c = 219.9; ring.style.strokeDashoffset = (c - (pct/100)*c).toFixed(1); }
   setText('maand-ring-pct', Math.round(pct)+'%');
@@ -2109,9 +2111,10 @@ function renderUpcomingBills(){
 }
 
 /* ============ UITGAVEN ============ */
-const CAT_ICONS = { 'Boodschappen':'shopping-cart','Vervoer':'car','Vrije tijd':'gamepad-2','Horeca':'utensils','Kleding':'shirt','Gezondheid':'heart-pulse','Vaste kosten extra':'receipt','Overig':'more-horizontal' };
+const CAT_ICONS = { 'Boodschappen':'shopping-cart','Vervoer':'car','Vrije tijd':'gamepad-2','Horeca':'utensils','Kleding':'shirt','Gezondheid':'heart-pulse','Vaste kosten extra':'receipt','Sparen':'piggy-bank','Inkomend':'arrow-down-to-line','Overig':'more-horizontal' };
 let expensePeriod = 'dag';
 let breakdownMode = 'categorie';
+let breakdownFilter = null; // { label, isIncome } — actief na tikken op een categorie/handelaar hieronder
 /* ============ AUTOMATISCHE CATEGORISERING (op basis van handelaarsnaam/omschrijving) ============
    Geïmporteerde uitgaven (CSV/PDF) kregen voordien altijd blindweg "Overig" — met de rijkere
    omschrijving die de PDF-import oplevert (echte handelaarsnamen) kan dat nu een stuk slimmer.
@@ -2125,6 +2128,7 @@ const EXPENSE_CATEGORY_RULES = [
   { cat:'Kleding', keywords:['h&m','zara','primark','c&a','zeeman','jbc','only ','bershka','decathlon'] },
   { cat:'Vrije tijd', keywords:['netflix','spotify','steam','playstation','xbox','cinema','kinepolis','bioscoop','pathe','disney+'] },
   { cat:'Vaste kosten extra', keywords:['abvv','acv','vakbond','assurantie','verzekering','telenet','proximus','orange belgium','base ','vlaams datanutsbedrijf','water-link','fluvius','engie','luminus','argenta assurant'] },
+  { cat:'Sparen', keywords:['spaar','zilvervloot','beleggingsrekening','pensioenspar','spaarverzekering'] },
 ];
 function guessExpenseCategory(omschrijving){
   const s = (omschrijving||'').toLowerCase();
@@ -2132,6 +2136,22 @@ function guessExpenseCategory(omschrijving){
   return 'Overig';
 }
 function expensesInRange(start, end){ return state.expenses.filter(e=>{ const d=new Date(e.datum); return d>=start && d<=end; }); }
+function incomeInRange(start, end){ return state.inkomsten.filter(i=>{ const d=new Date(i.datum); return d>=start && d<=end; }); }
+/* ============ DUPLICAAT-DETECTIE (bedrag+dag primair, omschrijving enkel om te ontdubbelen bij
+   meerdere identieke bedragen op dezelfde dag) — zo blijft dedupe werken ook als je een
+   geïmporteerde uitgave achteraf een eigen naam gegeven hebt via "bewerken". */
+function isDuplicateExpense(bedrag, datum, omschrijving){
+  const kandidaten = state.expenses.filter(e=> Math.abs(e.bedrag-bedrag)<0.005 && sameDay(new Date(e.datum), datum));
+  if(kandidaten.length===0) return false;
+  if(kandidaten.length===1) return true;
+  return kandidaten.some(e=> (e.bron || e.omschrijving || '') === (omschrijving||''));
+}
+function isDuplicateIncome(bedrag, datum, omschrijving){
+  const kandidaten = state.inkomsten.filter(i=> Math.abs(i.bedrag-bedrag)<0.005 && sameDay(new Date(i.datum), datum));
+  if(kandidaten.length===0) return false;
+  if(kandidaten.length===1) return true;
+  return kandidaten.some(i=> (i.bron || i.omschrijving || '') === (omschrijving||''));
+}
 function renderExpenseChart(){
   const now = new Date();
   const days = Array.from({length:7}, (_,i)=> addDays(now, -6+i));
@@ -2148,49 +2168,96 @@ function renderExpenseOverview(){
   else if(expensePeriod==='maand'){ start=new Date(now.getFullYear(),now.getMonth(),1); end=new Date(now.getFullYear(),now.getMonth()+1,1); }
   else { start=new Date(now.getFullYear(),0,1); end=new Date(now.getFullYear()+1,0,1); }
   const items = expensesInRange(start,end);
+  const incomeItems = incomeInRange(start,end);
   const total = items.reduce((s,e)=>s+e.bedrag,0);
   animateNumber('expense-total', total, v=>fmtEUR(v));
   setText('expense-count', items.length + ' uitgave' + (items.length===1?'':'n'));
 
-  // Groepering: "Per categorie" (vaste 8 buckets, incl. auto-gegokte) of "Per handelaar"
+  // Groepering: "Per categorie" (vaste buckets, incl. auto-gegokte) of "Per handelaar"
   // (groepeert op de letterlijke omschrijving — vooral waardevol bij PDF/CSV-import met echte
   // handelaarsnamen). Beide tonen nu de VOLLEDIGE lijst met aantal + percentage, niet enkel top 5.
-  let rows, iconFor;
+  // Inkomsten (state.inkomsten) krijgen hun eigen groep(en) 'Inkomend' — groen, met een + —
+  // los van de uitgaven-percentages (die blijven puur op uitgaven gebaseerd).
+  let rows, incomeRows, iconFor;
   if(breakdownMode==='handelaar'){
     const byMerchant = {};
     items.forEach(e=>{ const key = e.omschrijving || e.categorie || 'Onbekend'; if(!byMerchant[key]) byMerchant[key] = {bedrag:0,count:0}; byMerchant[key].bedrag += e.bedrag; byMerchant[key].count++; });
     rows = Object.entries(byMerchant).map(([naam,v])=>({label:naam, amt:v.bedrag, count:v.count})).sort((a,b)=>b.amt-a.amt);
+    const byIncomeMerchant = {};
+    incomeItems.forEach(i=>{ const key = i.omschrijving || 'Inkomend'; if(!byIncomeMerchant[key]) byIncomeMerchant[key] = {bedrag:0,count:0}; byIncomeMerchant[key].bedrag += i.bedrag; byIncomeMerchant[key].count++; });
+    incomeRows = Object.entries(byIncomeMerchant).map(([naam,v])=>({label:naam, amt:v.bedrag, count:v.count})).sort((a,b)=>b.amt-a.amt);
     iconFor = ()=> 'store';
   } else {
     const byCat = {};
     items.forEach(e=>{ if(!byCat[e.categorie]) byCat[e.categorie] = {bedrag:0,count:0}; byCat[e.categorie].bedrag += e.bedrag; byCat[e.categorie].count++; });
     rows = Object.entries(byCat).map(([cat,v])=>({label:cat, amt:v.bedrag, count:v.count})).sort((a,b)=>b.amt-a.amt);
+    incomeRows = incomeItems.length===0 ? [] : [{ label:'Inkomend', amt: incomeItems.reduce((s,i)=>s+i.bedrag,0), count: incomeItems.length }];
     iconFor = (label)=> CAT_ICONS[label]||'circle';
   }
   const maxAmt = Math.max(1, ...rows.map(r=>r.amt));
-  setHTML('expense-breakdown', rows.length===0 ? '<p class="text-sm text-[var(--text-2)]">Nog geen uitgaven in deze periode.</p>' :
-    rows.map(r=>{
-      const pct = total>0 ? (r.amt/total*100) : 0;
-      return `<div><div class="flex justify-between text-xs mb-1">
-          <span class="flex items-center gap-1.5 text-[var(--text-2)] min-w-0"><i data-lucide="${iconFor(r.label)}" class="w-3 h-3 shrink-0"></i><span class="truncate">${r.label}</span><span class="text-[var(--text-3)] shrink-0">×${r.count}</span></span>
-          <span class="font-mono shrink-0">${fmtEUR(r.amt)} <span class="text-[var(--text-3)]">(${pct.toFixed(0)}%)</span></span></div>
-        <div class="h-1.5 rounded-full bg-white/5 overflow-hidden"><div class="h-full rounded-full" style="width:${(r.amt/maxAmt)*100}%; background:linear-gradient(90deg,var(--purple),var(--cyan))"></div></div></div>`;
-    }).join(''));
-  // BELANGRIJK: dit toont nu de uitgaven van de GESELECTEERDE periode (dag/week/maand/jaar) —
-  // voordien stond dit altijd vast op "de 25 meest recente uitgaven ooit", los van de gekozen tab,
-  // waardoor bv. "Maand" leek af te kappen zodra er 25+ nieuwere uitgaven in latere dagen bijkwamen.
-  const sorted = [...items].sort((a,b)=> new Date(b.datum) - new Date(a.datum));
-  setHTML('expense-list', sorted.length===0 ? '<p class="text-sm text-[var(--text-2)]">Nog geen uitgaven geregistreerd in deze periode.</p>' :
-    sorted.map(e=>`
+  const maxIncomeAmt = Math.max(1, ...incomeRows.map(r=>r.amt));
+  const rowHTML = (r, isIncome, max)=>{
+    const pct = (!isIncome && total>0) ? (r.amt/total*100) : null;
+    const active = breakdownFilter && breakdownFilter.label===r.label && !!breakdownFilter.isIncome===isIncome;
+    const veiligLabel = String(r.label).replace(/"/g,'&quot;');
+    return `<button type="button" data-breakdown-label="${veiligLabel}" data-breakdown-income="${isIncome?'1':'0'}"
+        class="w-full text-left block rounded-lg px-1.5 py-1 -mx-1.5 transition ${active?'bg-white/10':'hover:bg-white/5'}">
+        <div class="flex justify-between text-xs mb-1">
+          <span class="flex items-center gap-1.5 min-w-0" style="color:${isIncome?'var(--success)':'var(--text-2)'}"><i data-lucide="${iconFor(r.label)}" class="w-3 h-3 shrink-0"></i><span class="truncate">${r.label}</span><span class="text-[var(--text-3)] shrink-0">×${r.count}</span></span>
+          <span class="font-mono shrink-0" ${isIncome?'style="color:var(--success)"':''}>${isIncome?'+ ':''}${fmtEUR(r.amt)}${pct!=null?` <span class="text-[var(--text-3)]">(${pct.toFixed(0)}%)</span>`:''}</span>
+        </div>
+        <div class="h-1.5 rounded-full bg-white/5 overflow-hidden"><div class="h-full rounded-full" style="width:${(r.amt/max)*100}%; background:${isIncome?'var(--success)':'linear-gradient(90deg,var(--purple),var(--cyan))'}"></div></div>
+      </button>`;
+  };
+  setHTML('expense-breakdown', (rows.length===0 && incomeRows.length===0) ? '<p class="text-sm text-[var(--text-2)]">Nog geen uitgaven in deze periode.</p>' :
+    rows.map(r=>rowHTML(r,false,maxAmt)).join('') + incomeRows.map(r=>rowHTML(r,true,maxIncomeAmt)).join(''));
+  document.querySelectorAll('[data-breakdown-label]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const label = btn.dataset.breakdownLabel, isIncome = btn.dataset.breakdownIncome==='1';
+      if(breakdownFilter && breakdownFilter.label===label && breakdownFilter.isIncome===isIncome) breakdownFilter = null;
+      else breakdownFilter = { label, isIncome };
+      renderExpenseOverview();
+    });
+  });
+
+  // Lijst onderaan: getikt op een categorie/handelaar hierboven → gefilterd tot die groep;
+  // anders alle uitgaven + inkomsten van de gekozen periode samen, chronologisch.
+  const expenseTagged = items.map(e=>({...e, _isIncome:false}));
+  const incomeTagged = incomeItems.map(i=>({...i, _isIncome:true, categorie:'Inkomend'}));
+  let listItems;
+  if(breakdownFilter){
+    if(breakdownFilter.isIncome){
+      listItems = breakdownMode==='categorie' ? incomeTagged : incomeTagged.filter(i=> (i.omschrijving||'Inkomend')===breakdownFilter.label);
+    } else {
+      listItems = breakdownMode==='categorie' ? expenseTagged.filter(e=>e.categorie===breakdownFilter.label) : expenseTagged.filter(e=> (e.omschrijving||e.categorie||'Onbekend')===breakdownFilter.label);
+    }
+  } else {
+    listItems = [...expenseTagged, ...incomeTagged];
+  }
+  const sorted = listItems.sort((a,b)=> new Date(b.datum) - new Date(a.datum));
+  const titleEl = $id('expense-list-title'), clearBtn = $id('expense-list-filter-clear');
+  if(titleEl) titleEl.textContent = breakdownFilter ? (breakdownFilter.isIncome ? 'INKOMEND — ' : '') + breakdownFilter.label.toUpperCase() : 'ALLE UITGAVEN & INKOMSTEN';
+  if(clearBtn){ clearBtn.classList.toggle('hidden', !breakdownFilter); clearBtn.classList.toggle('flex', !!breakdownFilter); }
+  setHTML('expense-list', sorted.length===0 ? '<p class="text-sm text-[var(--text-2)]">Niets gevonden in deze periode'+(breakdownFilter?' voor "'+breakdownFilter.label+'"':'')+'.</p>' :
+    sorted.map(e=>{
+      const isInc = e._isIncome;
+      const bedragTxt = (isInc?'+ ':'− ') + fmtEUR(e.bedrag);
+      const editBtn = isInc ? '' : `<button data-exp-edit="${e.id}" class="text-[var(--text-3)] hover:text-[var(--purple-soft)]"><i data-lucide="pencil" class="w-4 h-4"></i></button>`;
+      const delAttr = isInc ? `data-income-del="${e.id}"` : `data-exp-del="${e.id}"`;
+      return `
       <div class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5">
-        <div class="flex items-center gap-3 min-w-0"><i data-lucide="${CAT_ICONS[e.categorie]||'circle'}" class="w-4 h-4 text-[var(--purple-soft)] shrink-0"></i>
+        <div class="flex items-center gap-3 min-w-0"><i data-lucide="${CAT_ICONS[e.categorie]||'circle'}" class="w-4 h-4 shrink-0" style="color:${isInc?'var(--success)':'var(--purple-soft)'}"></i>
           <div class="min-w-0"><p class="text-sm font-medium truncate">${e.omschrijving || e.categorie}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(e.datum))} · ${e.categorie}</p></div></div>
-        <div class="flex items-center gap-2 shrink-0"><span class="font-mono text-sm" style="color:var(--danger)">− ${fmtEUR(e.bedrag)}</span>
-          <button data-exp-edit="${e.id}" class="text-[var(--text-3)] hover:text-[var(--purple-soft)]"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-          <button data-exp-del="${e.id}" class="text-[var(--text-3)] hover:text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
-      </div>`).join(''));
+        <div class="flex items-center gap-2 shrink-0"><span class="font-mono text-sm" style="color:${isInc?'var(--success)':'var(--danger)'}">${bedragTxt}</span>
+          ${editBtn}
+          <button ${delAttr} class="text-[var(--text-3)] hover:text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
+      </div>`;
+    }).join(''));
   document.querySelectorAll('[data-exp-del]').forEach(btn=> btn.addEventListener('click', ()=>{
     state.expenses = state.expenses.filter(e=>e.id!==btn.dataset.expDel); saveState(state); renderFinancePage2();
+  }));
+  document.querySelectorAll('[data-income-del]').forEach(btn=> btn.addEventListener('click', ()=>{
+    state.inkomsten = state.inkomsten.filter(i=>i.id!==btn.dataset.incomeDel); saveState(state); renderFinancePage2();
   }));
   document.querySelectorAll('[data-exp-edit]').forEach(btn=> btn.addEventListener('click', ()=> openExpenseEditModal(btn.dataset.expEdit)));
   renderExpenseChart();
@@ -2200,20 +2267,22 @@ function renderExpenseOverview(){
   setText('sum-expenses-count', monthItems.length + ' geregistreerde uitgaven');
   safeIcons();
 }
-function renderFinancePage2(){ renderFinancePage(); renderUpcomingBills(); renderExpenseOverview(); renderBudgetProgress(); renderCustomBills(); renderIncomeList(); }
+function renderFinancePage2(){ renderFinancePage(); renderUpcomingBills(); renderExpenseOverview(); renderBudgetProgress(); renderCustomBills(); }
 function bindExpenseForm(){
   const dateInput = $id('exp-datum');
   if(dateInput && !dateInput.value){ const n=new Date(); dateInput.value = n.toISOString().slice(0,10); }
   document.querySelectorAll('#expense-period-tabs .period-tab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('#expense-period-tabs .period-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active'); expensePeriod = btn.dataset.period; renderExpenseOverview();
+      btn.classList.add('active'); expensePeriod = btn.dataset.period; breakdownFilter = null; renderExpenseOverview();
     });
   });
+  const filterClearBtn = $id('expense-list-filter-clear');
+  if(filterClearBtn) filterClearBtn.addEventListener('click', ()=>{ breakdownFilter = null; renderExpenseOverview(); });
   document.querySelectorAll('#breakdown-mode-tabs .period-tab').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       document.querySelectorAll('#breakdown-mode-tabs .period-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active'); breakdownMode = btn.dataset.mode; renderExpenseOverview();
+      btn.classList.add('active'); breakdownMode = btn.dataset.mode; breakdownFilter = null; renderExpenseOverview();
     });
   });
   const autoCatBtn = $id('auto-categorize-btn');
@@ -2376,9 +2445,9 @@ function bindExpenseCsvImport(){
       if(rows.length===0){ showToast('Geen bruikbare uitgaven gevonden in dit bestand.','alert-circle'); fileInput.value=''; return; }
       let toegevoegd=0, overgeslagen=0;
       rows.forEach(r=>{
-        const dupe = state.expenses.some(e=> Math.abs(e.bedrag-r.bedrag)<0.005 && sameDay(new Date(e.datum), r.datum) && (e.omschrijving||'')===(r.omschrijving||''));
+        const dupe = isDuplicateExpense(r.bedrag, r.datum, r.omschrijving);
         if(dupe){ overgeslagen++; return; }
-        state.expenses.push({ id:'exp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:r.bedrag, categorie:guessExpenseCategory(r.omschrijving), omschrijving:r.omschrijving||'Bank import', datum:r.datum.toISOString() });
+        state.expenses.push({ id:'exp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:r.bedrag, categorie:guessExpenseCategory(r.omschrijving), omschrijving:r.omschrijving||'Bank import', bron:r.omschrijving||'', datum:r.datum.toISOString() });
         toegevoegd++;
       });
       saveState(state);
@@ -2391,25 +2460,9 @@ function bindExpenseCsvImport(){
   });
 }
 
-/* ============ INKOMSTEN (enkel gevoed via PDF-import — puur informatief, telt niet mee in budget) ============ */
-function renderIncomeList(){
-  const el = $id('income-list'); if(!el) return;
-  const sorted = [...state.inkomsten].sort((a,b)=> new Date(b.datum) - new Date(a.datum)).slice(0,25);
-  setHTML('income-list', sorted.length===0 ? '<p class="text-sm text-[var(--text-2)]">Nog geen inkomsten geïmporteerd.</p>' :
-    sorted.map(i=>`
-      <div class="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-xl px-4 py-2.5">
-        <div class="flex items-center gap-3"><i data-lucide="arrow-down-to-line" class="w-4 h-4" style="color:var(--success)"></i>
-          <div><p class="text-sm font-medium">${i.omschrijving}</p><p class="text-xs text-[var(--text-2)]">${fmtDayShort(new Date(i.datum))}</p></div></div>
-        <div class="flex items-center gap-3"><span class="font-mono text-sm" style="color:var(--success)">+ ${fmtEUR(i.bedrag)}</span>
-          <button data-income-del="${i.id}" class="text-[var(--text-3)] hover:text-[var(--danger)]"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
-      </div>`).join(''));
-  document.querySelectorAll('[data-income-del]').forEach(btn=> btn.addEventListener('click', ()=>{
-    state.inkomsten = state.inkomsten.filter(i=>i.id!==btn.dataset.incomeDel); saveState(state); renderIncomeList();
-  }));
-  safeIcons();
-}
-
-/* ============ PDF-UITTREKSEL IMPORT (rechtstreeks een bank-PDF uploaden, geen CSV-omweg meer) ============ */
+/* ============ PDF-UITTREKSEL IMPORT (rechtstreeks een bank-PDF uploaden, geen CSV-omweg meer) ============
+   Inkomsten (state.inkomsten) worden getoond in dezelfde lijst als de uitgaven (renderExpenseOverview),
+   onder de categorie 'Inkomend', groen met een + — puur informatief, telt niet mee in de uitgaven-totalen. */
 let pdfImportParsed = [];
 function bindPdfBankImport(){
   const btn = $id('exp-pdf-import-btn'), fileInput = $id('exp-pdf-file');
@@ -2443,19 +2496,19 @@ function bindPdfBankImport(){
       const t = pdfImportParsed[+chk.dataset.pdfTxIdx]; if(!t) return;
       if(t.bedrag < 0){
         const bedragAbs = Math.abs(t.bedrag);
-        const dupe = state.expenses.some(x=> Math.abs(x.bedrag-bedragAbs)<0.005 && sameDay(new Date(x.datum), t.datum) && (x.omschrijving||'')===(t.omschrijving||''));
+        const dupe = isDuplicateExpense(bedragAbs, t.datum, t.omschrijving);
         if(dupe){ overgeslagen++; return; }
-        state.expenses.push({ id:'exp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:bedragAbs, categorie:guessExpenseCategory(t.omschrijving), omschrijving:t.omschrijving||'Bank import', datum:t.datum.toISOString() });
+        state.expenses.push({ id:'exp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:bedragAbs, categorie:guessExpenseCategory(t.omschrijving), omschrijving:t.omschrijving||'Bank import', bron:t.omschrijving||'', datum:t.datum.toISOString() });
         toegevoegdUit++;
       } else {
-        const dupe = state.inkomsten.some(x=> Math.abs(x.bedrag-t.bedrag)<0.005 && sameDay(new Date(x.datum), t.datum) && (x.omschrijving||'')===(t.omschrijving||''));
+        const dupe = isDuplicateIncome(t.bedrag, t.datum, t.omschrijving);
         if(dupe){ overgeslagen++; return; }
-        state.inkomsten.push({ id:'inc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:t.bedrag, omschrijving:t.omschrijving||'Bank import', datum:t.datum.toISOString() });
+        state.inkomsten.push({ id:'inc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), bedrag:t.bedrag, omschrijving:t.omschrijving||'Bank import', bron:t.omschrijving||'', datum:t.datum.toISOString() });
         toegevoegdIn++;
       }
     });
     saveState(state);
-    renderExpenseOverview(); renderBudgetProgress(); renderIncomeList();
+    renderExpenseOverview(); renderBudgetProgress();
     closeModal('pdf-import-modal');
     showToast(toegevoegdUit+' uitgave(n) en '+toegevoegdIn+' inkomst(en) geïmporteerd'+(overgeslagen?', '+overgeslagen+' dubbels overgeslagen':''), 'landmark');
     if(toegevoegdUit>0 || toegevoegdIn>0) fireConfetti(origin.x, origin.y);
