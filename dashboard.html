@@ -44,7 +44,7 @@
   .font-mono{font-family:'JetBrains Mono',monospace;}
   .glow-text{ transition:text-shadow 1.2s ease, color 1.2s ease; text-shadow:0 0 14px var(--purple), 0 0 34px rgba(34,211,238,0.25); }
 
-  #error-banner{ display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:#3f1d1d; color:#fecaca; border-bottom:1px solid #f87171; font-family:'JetBrains Mono',monospace; font-size:12px; padding:10px 16px; white-space:pre-wrap; }
+  #error-banner{ display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:#3f1d1d; color:#fecaca; border-bottom:1px solid #f87171; font-family:'JetBrains Mono',monospace; font-size:12px; padding:calc(10px + env(safe-area-inset-top)) 16px 10px; white-space:pre-wrap; }
 
   .bg-scene{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; transition:background 1.4s ease;
     background: radial-gradient(circle at 15% 10%, rgba(168,85,247,0.10), transparent 40%),
@@ -119,6 +119,9 @@
   @keyframes pop{ 0%{transform:scale(0.5);} 70%{transform:scale(1.2);} 100%{transform:scale(1);} }
   .todo-row.checked .todo-label{ text-decoration:line-through; color:var(--text-3); }
   .todo-row{ transition: background .15s ease; border-radius:10px; }
+  /* Afgekapte taaktekst (truncate) is aantikbaar om volledig uit te vergroten (en terug in te klappen). */
+  .todo-label{ cursor:pointer; }
+  .todo-label.expanded{ white-space:normal !important; overflow:visible !important; text-overflow:clip !important; }
   .todo-row:hover{ background:rgba(255,255,255,0.02); }
 
   .chip{ font-size:11px; padding:3px 9px; border-radius:100px; border:1px solid var(--border-glow); color:var(--text-2); font-family:'JetBrains Mono',monospace; }
@@ -2188,7 +2191,10 @@ function openDayDetail(dateISO){
 function bindCalendarClicks(){
   document.addEventListener('click', (e)=>{
     const cell = e.target.closest('.cal-cell[data-date]');
-    if(cell) openDayDetail(cell.dataset.date);
+    if(cell){ openDayDetail(cell.dataset.date); return; }
+    // 7-daags overzicht op de homescreen: tik op een dag om te zien wélke taken er precies staan.
+    const strip = e.target.closest('[data-weekstrip-date]');
+    if(strip) openDayDetail(strip.dataset.weekstripDate);
   });
 }
 function bindMonthNav(){
@@ -2291,6 +2297,9 @@ function bindTodoClicks(){
       if(currentDayDetailDate && $id('day-detail-modal').classList.contains('open')) openDayDetail(currentDayDetailDate);
       return;
     }
+    // Tik op een (afgekapte) taaktekst om ze volledig uit te vergroten/terug in te klappen.
+    const labelEl = e.target.closest('.todo-label');
+    if(labelEl){ labelEl.classList.toggle('expanded'); return; }
   });
 }
 
@@ -2394,7 +2403,7 @@ function renderWeekStripHome(){
     const openCount = dayTasks.filter(t=> !t.done).length;
     const isToday = i===0;
     const isOverdue = dayTasks.some(t=> !t.done && t.deadline && new Date(t.deadline+'T23:59:59') < now);
-    html += `<div class="shrink-0 w-[84px] rounded-xl border ${isToday?'border-[var(--border-glow-strong)]':(isOverdue?'border-[var(--danger)]/50':'border-white/10')} bg-white/[0.03] p-2.5">
+    html += `<div class="shrink-0 w-[84px] rounded-xl border ${isToday?'border-[var(--border-glow-strong)]':(isOverdue?'border-[var(--danger)]/50':'border-white/10')} bg-white/[0.03] p-2.5 cursor-pointer active:scale-[0.97] transition-transform" data-weekstrip-date="${d.toISOString()}">
       <p class="text-[9px] font-mono ${isToday?'text-[var(--purple-soft)]':'text-[var(--text-2)]'} mb-1.5 uppercase truncate">${isToday?'Vandaag':dagNamen[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}</p>
       ${dayTasks.length===0
         ? '<p class="text-[10px] text-[var(--text-3)]">—</p>'
@@ -3930,7 +3939,10 @@ const RECIPE_DOC_STYLE = `
   h2{ font-family:Arial,sans-serif; font-size:15px; text-transform:uppercase; letter-spacing:1px; color:#555; margin-top:28px; }
   ul{ padding-left:20px; } li{ margin-bottom:4px; }
   ol{ padding-left:20px; } ol li{ margin-bottom:10px; line-height:1.6; }
-  .doc-toolbar{ max-width:680px; margin:0 auto; padding:14px 20px; display:flex; gap:10px; position:sticky; top:0; background:#fdfcf9; z-index:1; border-bottom:1px solid #e8e5dd; }
+  /* padding-top houdt rekening met env(safe-area-inset-top): in standalone/PWA-modus op iOS
+     (met viewport-fit=cover) tekent de webview door tot onder de systeem-statusbalk/tijdsaanduiding —
+     zonder deze marge zou de "Sluiten"-knop daar precies achter/onder verdwijnen en onklikbaar zijn. */
+  .doc-toolbar{ max-width:680px; margin:0 auto; padding:calc(14px + env(safe-area-inset-top)) 20px 14px; display:flex; gap:10px; position:sticky; top:0; background:#fdfcf9; z-index:1; border-bottom:1px solid #e8e5dd; }
   .doc-toolbar button{ font-family:Arial,sans-serif; font-size:13px; padding:8px 16px; border-radius:999px; border:1px solid #ccc; background:#fff; cursor:pointer; }
   .doc-toolbar button.doc-close{ background:#333; color:#fff; border-color:#333; }
   @media print{
