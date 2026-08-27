@@ -554,20 +554,7 @@
             <div><p class="text-[var(--text-2)] text-xs font-mono mb-1">FINANCIËN</p><h3 class="font-display text-lg font-semibold">Deze week</h3></div>
             <button data-goto="financien" class="btn-ghost text-xs px-3 py-1.5 rounded-full flex items-center gap-1">Alles bekijken <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
           </div>
-          <div class="flex items-center gap-5">
-            <svg width="104" height="104" viewBox="0 0 104 104" class="shrink-0">
-              <circle cx="52" cy="52" r="44" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
-              <circle id="budget-ring" cx="52" cy="52" r="44" fill="none" stroke="url(#grad1)" stroke-width="10" stroke-linecap="round" stroke-dasharray="276.4" stroke-dashoffset="276.4" transform="rotate(-90 52 52)" style="transition:stroke-dashoffset .6s ease"/>
-              <defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient></defs>
-              <text id="budget-pct" x="52" y="57" text-anchor="middle" fill="#e7e9f3" font-size="20" font-family="JetBrains Mono" font-weight="600">0%</text>
-            </svg>
-            <div>
-              <p class="text-xs text-[var(--text-2)] mb-1">Vervalt deze week t.o.v. maandbudget</p>
-              <p id="budget-week-amount" class="font-mono text-lg font-semibold text-[var(--text-1)]">€ 0,00</p>
-              <p id="budget-month-total" class="text-xs text-[var(--text-3)]">van € 0,00 gemiddeld per maand</p>
-            </div>
-          </div>
-          <div id="week-bills-list" class="mt-5 space-y-2"></div>
+          <div id="week-bills-list" class="space-y-2"></div>
         </div>
 
         <div class="panel p-6" id="fuel-card">
@@ -582,18 +569,6 @@
           </div>
           <div id="fuel-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
           <p id="fuel-note" class="text-[11px] text-[var(--text-3)] mt-4 leading-relaxed"></p>
-        </div>
-
-        <div class="panel p-6">
-          <p class="text-[var(--text-2)] text-xs font-mono mb-1">QUICK ACTIONS</p>
-          <h3 class="font-display text-lg font-semibold mb-4">Snelle acties &amp; taken</h3>
-          <div class="flex flex-wrap gap-2 mb-5">
-            <button id="qa-newtask" class="btn-solid text-xs px-3 py-2 rounded-full flex items-center gap-1.5 text-white font-medium"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Nieuwe taak</button>
-            <button data-goto="rooster" class="btn-ghost text-xs px-3 py-2 rounded-full flex items-center gap-1.5"><i data-lucide="calendar-days" class="w-3.5 h-3.5"></i> Rooster</button>
-            <button data-goto="financien" class="btn-ghost text-xs px-3 py-2 rounded-full flex items-center gap-1.5"><i data-lucide="wallet" class="w-3.5 h-3.5"></i> Financiën</button>
-            <button id="qa-checkall" class="btn-ghost text-xs px-3 py-2 rounded-full flex items-center gap-1.5"><i data-lucide="check-check" class="w-3.5 h-3.5"></i> Vandaag afvinken</button>
-          </div>
-          <div id="todo-list-mini" class="space-y-2 max-h-[180px] overflow-y-auto pr-1"></div>
         </div>
 
         <div class="panel p-6" id="grocery-card">
@@ -624,22 +599,22 @@
     <!-- PAGE: FINANCIEN -->
     <section id="page-financien" class="page">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
-        <div class="panel p-5">
+        <div class="panel p-5 cursor-pointer hover:border-[var(--purple)]/40 transition" data-scroll-target="vaste-lasten-list">
           <div class="flex items-center gap-2 text-[var(--text-2)] text-xs font-mono mb-2"><i data-lucide="home" class="w-3.5 h-3.5"></i> VASTE LASTEN / MAAND</div>
           <p id="sum-vaste" class="font-display text-2xl font-semibold glow-text">€ 0,00</p>
           <p class="text-xs text-[var(--text-3)] mt-1">Gemiddeld, incl. kwartaalposten</p>
         </div>
-        <div class="panel p-5">
+        <div class="panel p-5 cursor-pointer hover:border-[var(--purple)]/40 transition" data-scroll-target="abonnementen-list">
           <div class="flex items-center gap-2 text-[var(--text-2)] text-xs font-mono mb-2"><i data-lucide="tv" class="w-3.5 h-3.5"></i> ABONNEMENTEN / MAAND</div>
           <p id="sum-abbo" class="font-display text-2xl font-semibold glow-text">€ 0,00</p>
           <p class="text-xs text-[var(--text-3)] mt-1" id="sum-abbo-count">0 actieve abonnementen</p>
         </div>
-        <div class="panel p-5">
+        <div class="panel p-5 cursor-pointer hover:border-[var(--purple)]/40 transition" data-scroll-target="vaste-lasten-list">
           <div class="flex items-center gap-2 text-[var(--text-2)] text-xs font-mono mb-2"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> JAARLIJKS — AUTOVERZEKERING</div>
           <p id="sum-yearly" class="font-display text-2xl font-semibold glow-text">€ 0,00</p>
           <p class="text-xs text-[var(--text-3)] mt-1" id="sum-yearly-monthly">≈ € 0,00 per maand gereserveerd</p>
         </div>
-        <div class="panel p-5">
+        <div class="panel p-5 cursor-pointer hover:border-[var(--purple)]/40 transition" data-scroll-target="uitgaven-bijhouden-panel">
           <div class="flex items-center gap-2 text-[var(--text-2)] text-xs font-mono mb-2"><i data-lucide="receipt" class="w-3.5 h-3.5"></i> UITGAVEN DEZE MAAND</div>
           <p id="sum-expenses-month" class="font-display text-2xl font-semibold glow-text">€ 0,00</p>
           <p class="text-xs text-[var(--text-3)] mt-1" id="sum-expenses-count">0 geregistreerde uitgaven</p>
@@ -660,7 +635,7 @@
           </svg>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4 cursor-pointer hover:border-[var(--purple)]/40 transition" data-scroll-target="uitgaven-bijhouden-panel">
             <p class="text-xs text-[var(--text-2)] mb-1">Al uitgegeven</p>
             <p id="maand-al-uitgegeven" class="font-display text-2xl font-semibold glow-text">€ 0,00</p>
             <p id="maand-al-detail" class="text-[11px] text-[var(--text-3)] mt-1">—</p>
@@ -670,7 +645,7 @@
             <p id="maand-nog-over" class="font-display text-2xl font-semibold" style="color:var(--cyan-soft)">€ 0,00</p>
             <p id="maand-nog-detail" class="text-[11px] text-[var(--text-3)] mt-1">—</p>
           </div>
-          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4 cursor-pointer hover:border-[var(--purple)]/40 transition" data-scroll-target="uitgaven-bijhouden-panel">
             <p class="text-xs text-[var(--text-2)] mb-1">Dagelijkse uitgaven deze maand</p>
             <p id="maand-dagelijks" class="font-display text-2xl font-semibold" style="color:var(--amber-soft)">€ 0,00</p>
             <p id="maand-dagelijks-detail" class="text-[11px] text-[var(--text-3)] mt-1">—</p>
@@ -686,7 +661,7 @@
         <div id="upcoming-unknown" class="text-xs text-[var(--text-3)] leading-relaxed"></div>
       </div>
 
-      <div class="panel p-6 mb-5">
+      <div class="panel p-6 mb-5" id="uitgaven-bijhouden-panel">
         <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div><p class="text-xs font-mono text-[var(--text-2)] mb-1">UITGAVEN BIJHOUDEN</p><h3 class="font-display text-lg font-semibold">Dagelijkse uitgaven</h3></div>
           <div class="flex gap-2" id="expense-period-tabs">
@@ -705,10 +680,7 @@
           </div>
           <div>
             <div class="flex items-center justify-between mb-2">
-              <div class="flex gap-1.5" id="breakdown-mode-tabs">
-                <button data-mode="categorie" class="period-tab active" style="font-size:11px;padding:4px 12px;">Per categorie</button>
-                <button data-mode="handelaar" class="period-tab" style="font-size:11px;padding:4px 12px;">Per handelaar</button>
-              </div>
+              <p class="text-xs text-[var(--text-2)] font-mono">PER CATEGORIE</p>
               <button id="auto-categorize-btn" type="button" class="text-[11px] text-[var(--purple-soft)] underline underline-offset-2 flex items-center gap-1"><i data-lucide="wand-2" class="w-3 h-3"></i> Automatisch categoriseren</button>
             </div>
             <div id="expense-breakdown" class="space-y-2 max-h-[260px] overflow-y-auto pr-1"></div>
@@ -1819,6 +1791,10 @@ function gotoPage(page){
 }
 document.querySelectorAll('.nav-btn').forEach(btn=>{ if(btn.dataset.page) btn.addEventListener('click', ()=> gotoPage(btn.dataset.page)); });
 document.querySelectorAll('[data-goto]').forEach(btn=> btn.addEventListener('click', ()=> gotoPage(btn.dataset.goto)));
+document.querySelectorAll('[data-scroll-target]').forEach(el=> el.addEventListener('click', ()=>{
+  const target = $id(el.dataset.scrollTarget);
+  if(target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+}));
 
 /* ============ CLOCK ============ */
 function renderTime(){
@@ -1956,12 +1932,6 @@ function computeFinance(){
 }
 function renderFinanceWidget(){
   const f = computeFinance();
-  const circumference = 2*Math.PI*44; const offset = circumference - (f.pct/100)*circumference;
-  const ring = $id('budget-ring');
-  if(ring){ ring.setAttribute('stroke-dasharray', circumference.toFixed(1)); ring.setAttribute('stroke-dashoffset', offset.toFixed(1)); }
-  setText('budget-pct', f.pct + '%');
-  setText('budget-week-amount', fmtEUR(f.weekTotal));
-  setText('budget-month-total', 'van ' + fmtEUR(f.grandTotal) + ' gemiddeld per maand');
   const rowsHTML = f.weekBills.length===0
     ? '<div class="text-sm text-[var(--text-2)] flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Geen rekeningen deze week.</div>'
     : f.weekBills.map(item => `
@@ -2113,7 +2083,6 @@ function renderUpcomingBills(){
 /* ============ UITGAVEN ============ */
 const CAT_ICONS = { 'Boodschappen':'shopping-cart','Vervoer':'car','Vrije tijd':'gamepad-2','Horeca':'utensils','Kleding':'shirt','Gezondheid':'heart-pulse','Vaste kosten extra':'receipt','Sparen':'piggy-bank','Inkomend':'arrow-down-to-line','Overig':'more-horizontal' };
 let expensePeriod = 'dag';
-let breakdownMode = 'categorie';
 let breakdownFilter = null; // { label, isIncome } — actief na tikken op een categorie/handelaar hieronder
 /* ============ AUTOMATISCHE CATEGORISERING (op basis van handelaarsnaam/omschrijving) ============
    Geïmporteerde uitgaven (CSV/PDF) kregen voordien altijd blindweg "Overig" — met de rijkere
@@ -2173,27 +2142,14 @@ function renderExpenseOverview(){
   animateNumber('expense-total', total, v=>fmtEUR(v));
   setText('expense-count', items.length + ' uitgave' + (items.length===1?'':'n'));
 
-  // Groepering: "Per categorie" (vaste buckets, incl. auto-gegokte) of "Per handelaar"
-  // (groepeert op de letterlijke omschrijving — vooral waardevol bij PDF/CSV-import met echte
-  // handelaarsnamen). Beide tonen nu de VOLLEDIGE lijst met aantal + percentage, niet enkel top 5.
-  // Inkomsten (state.inkomsten) krijgen hun eigen groep(en) 'Inkomend' — groen, met een + —
-  // los van de uitgaven-percentages (die blijven puur op uitgaven gebaseerd).
-  let rows, incomeRows, iconFor;
-  if(breakdownMode==='handelaar'){
-    const byMerchant = {};
-    items.forEach(e=>{ const key = e.omschrijving || e.categorie || 'Onbekend'; if(!byMerchant[key]) byMerchant[key] = {bedrag:0,count:0}; byMerchant[key].bedrag += e.bedrag; byMerchant[key].count++; });
-    rows = Object.entries(byMerchant).map(([naam,v])=>({label:naam, amt:v.bedrag, count:v.count})).sort((a,b)=>b.amt-a.amt);
-    const byIncomeMerchant = {};
-    incomeItems.forEach(i=>{ const key = i.omschrijving || 'Inkomend'; if(!byIncomeMerchant[key]) byIncomeMerchant[key] = {bedrag:0,count:0}; byIncomeMerchant[key].bedrag += i.bedrag; byIncomeMerchant[key].count++; });
-    incomeRows = Object.entries(byIncomeMerchant).map(([naam,v])=>({label:naam, amt:v.bedrag, count:v.count})).sort((a,b)=>b.amt-a.amt);
-    iconFor = ()=> 'store';
-  } else {
-    const byCat = {};
-    items.forEach(e=>{ if(!byCat[e.categorie]) byCat[e.categorie] = {bedrag:0,count:0}; byCat[e.categorie].bedrag += e.bedrag; byCat[e.categorie].count++; });
-    rows = Object.entries(byCat).map(([cat,v])=>({label:cat, amt:v.bedrag, count:v.count})).sort((a,b)=>b.amt-a.amt);
-    incomeRows = incomeItems.length===0 ? [] : [{ label:'Inkomend', amt: incomeItems.reduce((s,i)=>s+i.bedrag,0), count: incomeItems.length }];
-    iconFor = (label)=> CAT_ICONS[label]||'circle';
-  }
+  // Groepering per categorie (vaste buckets, incl. auto-gegokte), volledige lijst met aantal + percentage.
+  // Inkomsten (state.inkomsten) krijgen hun eigen groep 'Inkomend' — groen, met een + — los van de
+  // uitgaven-percentages (die blijven puur op uitgaven gebaseerd).
+  const byCat = {};
+  items.forEach(e=>{ if(!byCat[e.categorie]) byCat[e.categorie] = {bedrag:0,count:0}; byCat[e.categorie].bedrag += e.bedrag; byCat[e.categorie].count++; });
+  const rows = Object.entries(byCat).map(([cat,v])=>({label:cat, amt:v.bedrag, count:v.count})).sort((a,b)=>b.amt-a.amt);
+  const incomeRows = incomeItems.length===0 ? [] : [{ label:'Inkomend', amt: incomeItems.reduce((s,i)=>s+i.bedrag,0), count: incomeItems.length }];
+  const iconFor = (label)=> CAT_ICONS[label]||'circle';
   const maxAmt = Math.max(1, ...rows.map(r=>r.amt));
   const maxIncomeAmt = Math.max(1, ...incomeRows.map(r=>r.amt));
   const rowHTML = (r, isIncome, max)=>{
@@ -2220,17 +2176,13 @@ function renderExpenseOverview(){
     });
   });
 
-  // Lijst onderaan: getikt op een categorie/handelaar hierboven → gefilterd tot die groep;
+  // Lijst onderaan: getikt op een categorie hierboven → gefilterd tot die categorie;
   // anders alle uitgaven + inkomsten van de gekozen periode samen, chronologisch.
   const expenseTagged = items.map(e=>({...e, _isIncome:false}));
   const incomeTagged = incomeItems.map(i=>({...i, _isIncome:true, categorie:'Inkomend'}));
   let listItems;
   if(breakdownFilter){
-    if(breakdownFilter.isIncome){
-      listItems = breakdownMode==='categorie' ? incomeTagged : incomeTagged.filter(i=> (i.omschrijving||'Inkomend')===breakdownFilter.label);
-    } else {
-      listItems = breakdownMode==='categorie' ? expenseTagged.filter(e=>e.categorie===breakdownFilter.label) : expenseTagged.filter(e=> (e.omschrijving||e.categorie||'Onbekend')===breakdownFilter.label);
-    }
+    listItems = breakdownFilter.isIncome ? incomeTagged : expenseTagged.filter(e=>e.categorie===breakdownFilter.label);
   } else {
     listItems = [...expenseTagged, ...incomeTagged];
   }
@@ -2279,12 +2231,6 @@ function bindExpenseForm(){
   });
   const filterClearBtn = $id('expense-list-filter-clear');
   if(filterClearBtn) filterClearBtn.addEventListener('click', ()=>{ breakdownFilter = null; renderExpenseOverview(); });
-  document.querySelectorAll('#breakdown-mode-tabs .period-tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('#breakdown-mode-tabs .period-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active'); breakdownMode = btn.dataset.mode; breakdownFilter = null; renderExpenseOverview();
-    });
-  });
   const autoCatBtn = $id('auto-categorize-btn');
   if(autoCatBtn) autoCatBtn.addEventListener('click', ()=>{
     let gewijzigd = 0;
